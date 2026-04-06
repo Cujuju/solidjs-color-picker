@@ -56,7 +56,7 @@ For monorepo/local development, you can reference the package directly:
 ```json
 {
   "dependencies": {
-    "cujuju-solidjs-color-picker": "file:../packages/solid-color-picker"
+    "cujuju-solidjs-color-picker": "file:../packages/cujuju-solidjs-color-picker"
   }
 }
 ```
