@@ -2,7 +2,7 @@
  * cujuju-solidjs-color-picker — TradingView-style color picker for SolidJS.
  *
  * Public API exports:
- *  - Components: ColorSwatch, CompactPicker
+ *  - Components: ColorSwatch, CompactColorPicker
  *  - Canvas sub-components: SaturationCanvas, HueSlider, ShadeSlider
  *  - Utilities: hexToHsv, hsvToHex, hsvToRgb, extractAlpha, extractBaseHex, applyAlpha, parseRgbInput, supportsEyeDropper
  *  - Tokens: DEFAULT_TOKENS, SWATCH_SIZE, mergeTokens
@@ -12,7 +12,7 @@
 
 // ── Components ───────────────────────────────────────────────────────────────
 export { ColorSwatch } from './ColorSwatch';
-export { CompactPicker } from './ColorPicker';
+export { CompactColorPicker } from './ColorPicker';
 
 // ── Canvas sub-components ────────────────────────────────────────────────────
 export { SaturationCanvas } from './canvas/SaturationCanvas';
@@ -46,6 +46,6 @@ export type {
   HueSliderProps,
   ShadeSliderProps,
   FullPickerProps,
-  CompactPickerProps,
+  CompactColorPickerProps,
   ColorSwatchProps,
 } from './types';

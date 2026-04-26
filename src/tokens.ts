@@ -2,7 +2,7 @@
  * Design tokens for the color picker.
  *
  * These defaults produce a dark-themed picker matching TradingView's style.
- * Override any token by passing a partial `tokens` prop to CompactPicker or ColorSwatch.
+ * Override any token by passing a partial `tokens` prop to CompactColorPicker or ColorSwatch.
  */
 
 import type { PickerTokens } from './types';

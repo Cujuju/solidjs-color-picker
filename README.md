@@ -107,12 +107,12 @@ import { ColorSwatch } from 'cujuju-solidjs-color-picker';
 | `paletteMain` | `string[]` | TV palette (70 colors) | Override the main 10x7 color grid. |
 | `tokens` | `Partial<PickerTokens>` | `DEFAULT_TOKENS` | Override design tokens for theming. |
 
-#### `CompactPicker`
+#### `CompactColorPicker`
 
 The picker panel itself (without the swatch button or portal). Use this if you want to embed the picker inline or manage your own open/close and positioning logic.
 
 ```tsx
-import { CompactPicker } from 'cujuju-solidjs-color-picker';
+import { CompactColorPicker } from 'cujuju-solidjs-color-picker';
 ```
 
 | Prop | Type | Default | Description |
@@ -431,10 +431,10 @@ function ControlledExample() {
 
 ### Inline Picker (without swatch button)
 
-Use `CompactPicker` directly for embedding the picker panel inline:
+Use `CompactColorPicker` directly for embedding the picker panel inline:
 
 ```tsx
-import { CompactPicker } from 'cujuju-solidjs-color-picker';
+import { CompactColorPicker } from 'cujuju-solidjs-color-picker';
 
 function InlinePicker() {
   const [color, setColor] = createSignal('#42a5f5');
@@ -442,7 +442,7 @@ function InlinePicker() {
 
   return (
     <Show when={isOpen()}>
-      <CompactPicker
+      <CompactColorPicker
         value={color()}
         onChange={setColor}
         onClose={() => setIsOpen(false)}
@@ -542,7 +542,7 @@ import type {
   HueSliderProps,
   ShadeSliderProps,
   FullPickerProps,
-  CompactPickerProps,
+  CompactColorPickerProps,
   ColorSwatchProps,
 } from 'cujuju-solidjs-color-picker';
 ```

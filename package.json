@@ -1,20 +1,21 @@
 {
   "name": "cujuju-solidjs-color-picker",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "TradingView-style color picker for SolidJS — canvas-based HSV controls, palette grid, alpha support, EyeDropper API, zero dependencies.",
   "type": "module",
-  "main": "./src/index.ts",
-  "module": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "solid": "./src/index.ts",
-      "import": "./src/index.ts",
-      "types": "./src/index.ts"
+      "import": "./dist/index.js"
     }
   },
   "files": [
-    "src"
+    "src",
+    "dist"
   ],
   "sideEffects": false,
   "license": "MIT",
@@ -29,5 +30,9 @@
   "peerDependencies": {
     "solid-js": ">=1.7.0"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "scripts": {
+    "build": "vite build",
+    "prepublishOnly": "vite build"
+  }
 }

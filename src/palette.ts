@@ -1,7 +1,7 @@
 /**
  * TradingView-style color palette data.
  *
- * These are the default palettes used by CompactPicker. Override by passing
+ * These are the default palettes used by CompactColorPicker. Override by passing
  * `paletteRow1` and/or `paletteMain` props.
  */
 

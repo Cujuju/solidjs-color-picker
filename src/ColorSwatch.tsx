@@ -1,7 +1,7 @@
 /**
  * ColorSwatch — click-to-open swatch button with portal-based picker.
  *
- * Renders a small colored square. Clicking it opens the CompactPicker via
+ * Renders a small colored square. Clicking it opens the CompactColorPicker via
  * Solid's <Portal>, which renders directly into document.body to escape
  * any ancestor transform/overflow that would break fixed positioning
  * (e.g. dialogs using transform: translateX(-50%)).
@@ -11,7 +11,7 @@ import { createSignal, Show } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import type { ColorSwatchProps } from './types';
 import { SWATCH_SIZE } from './tokens';
-import { CompactPicker } from './ColorPicker';
+import { CompactColorPicker } from './ColorPicker';
 
 export function ColorSwatch(props: ColorSwatchProps) {
   const [open, setOpen] = createSignal(false);
@@ -52,7 +52,7 @@ export function ColorSwatch(props: ColorSwatchProps) {
         {/* Portal renders into document.body, bypassing ancestor transform/overflow */}
         <Portal>
           <div style={{ position: 'fixed', top: `${pickerPos().top}px`, left: `${pickerPos().left}px`, "z-index": '9999' }}>
-            <CompactPicker
+            <CompactColorPicker
               value={props.value}
               onChange={props.onChange}
               onClose={() => setOpen(false)}

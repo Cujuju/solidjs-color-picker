@@ -3,7 +3,7 @@
  *
  * Contains:
  *  - FullPicker — advanced saturation/hue/shade picker with hex/RGB inputs
- *  - CompactPicker — the main panel with palette grid, saved colors, alpha, OK/Cancel
+ *  - CompactColorPicker — the main panel with palette grid, saved colors, alpha, OK/Cancel
  *
  * The picker has zero dependencies beyond solid-js. Saved colors are managed
  * via props (savedColors / onSavedColorsChange) so the consumer controls persistence.
@@ -11,7 +11,7 @@
 
 import { createSignal, createEffect, onMount, onCleanup, Show } from 'solid-js';
 import type { JSX } from 'solid-js';
-import type { HsvColor, PickerTokens, CtxMenuState, CompactPickerProps, FullPickerProps } from './types';
+import type { HsvColor, PickerTokens, CtxMenuState, CompactColorPickerProps, FullPickerProps } from './types';
 import { hexToHsv, hsvToHex, hsvToRgb, extractAlpha, extractBaseHex, applyAlpha, parseRgbInput, supportsEyeDropper } from './utils';
 import { mergeTokens } from './tokens';
 import { TV_PALETTE_ROW1, TV_PALETTE_MAIN } from './palette';
@@ -23,7 +23,7 @@ import { ShadeSlider } from './canvas/ShadeSlider';
 
 /**
  * FullPicker — saturation square + hue slider + shade slider + hex/RGB inputs.
- * Opened from CompactPicker's "+" button to create custom colors.
+ * Opened from CompactColorPicker's "+" button to create custom colors.
  */
 function FullPicker(props: FullPickerProps) {
   // Parse initial color into HSV
@@ -194,10 +194,10 @@ function FullPicker(props: FullPickerProps) {
   );
 }
 
-// ── CompactPicker (TV swatch style) ─────────────────────────────────────────
+// ── CompactColorPicker (TV swatch style) ─────────────────────────────────────────
 
 /**
- * CompactPicker — the main color picker panel.
+ * CompactColorPicker — the main color picker panel.
  *
  * Displays a TradingView-style palette grid, user-saved custom colors,
  * an opacity slider, and OK/Cancel buttons. Clicking "+" opens the FullPicker
@@ -206,7 +206,7 @@ function FullPicker(props: FullPickerProps) {
  * Saved colors are managed via props: pass `savedColors` and `onSavedColorsChange`
  * to handle persistence in whatever storage system you prefer.
  */
-export function CompactPicker(props: CompactPickerProps) {
+export function CompactColorPicker(props: CompactColorPickerProps) {
   // Resolve palette and tokens with defaults
   const row1 = () => props.paletteRow1 ?? TV_PALETTE_ROW1;
   const main = () => props.paletteMain ?? TV_PALETTE_MAIN;

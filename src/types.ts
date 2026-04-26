@@ -81,8 +81,8 @@ export interface FullPickerProps {
   tokens?: Partial<PickerTokens>;
 }
 
-/** Props for the CompactPicker (main TV-palette picker panel) */
-export interface CompactPickerProps {
+/** Props for the CompactColorPicker (main TV-palette picker panel) */
+export interface CompactColorPickerProps {
   /** Current color value (hex, rgba, or 8-digit hex with alpha) */
   value: string;
   /** Callback when color changes */
