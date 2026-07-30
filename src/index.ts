@@ -32,7 +32,13 @@ export {
 } from './utils';
 
 // ── Design tokens ────────────────────────────────────────────────────────────
-export { DEFAULT_TOKENS, SWATCH_SIZE, mergeTokens } from './tokens';
+export {
+  DEFAULT_TOKENS,
+  SWATCH_SIZE,
+  PALETTE_SWATCH_SIZE,
+  PALETTE_SWATCH_RADIUS,
+  mergeTokens,
+} from './tokens';
 
 // ── Palette data ─────────────────────────────────────────────────────────────
 export { TV_PALETTE_ROW1, TV_PALETTE_MAIN } from './palette';

@@ -1,0 +1,10 @@
+# Every committed blob in this repo is LF. Without this, a checkout on a
+# machine where some editor or copy step rewrites files to CRLF makes git
+# report every source file as modified, which buries real edits in whitespace
+# churn (this happened 2026-07-29: 12 "modified" files, zero real changes).
+# `text=auto eol=lf` normalizes on commit AND checks out LF everywhere,
+# regardless of each machine's core.autocrlf.
+* text=auto eol=lf
+
+# Binary — never touch the bytes.
+*.png binary

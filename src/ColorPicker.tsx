@@ -13,7 +13,7 @@ import { createSignal, createEffect, onMount, onCleanup, Show } from 'solid-js';
 import type { JSX } from 'solid-js';
 import type { HsvColor, PickerTokens, CtxMenuState, CompactColorPickerProps, FullPickerProps } from './types';
 import { hexToHsv, hsvToHex, hsvToRgb, extractAlpha, extractBaseHex, applyAlpha, parseRgbInput, supportsEyeDropper } from './utils';
-import { mergeTokens } from './tokens';
+import { mergeTokens, PALETTE_SWATCH_SIZE, PALETTE_SWATCH_RADIUS } from './tokens';
 import { TV_PALETTE_ROW1, TV_PALETTE_MAIN } from './palette';
 import { SaturationCanvas } from './canvas/SaturationCanvas';
 import { HueSlider } from './canvas/HueSlider';
@@ -224,14 +224,14 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
   // Snapshot of current color at the moment FullPicker is opened
   let fullPickerInitial = props.value;
 
-  // Auto-add the opened color to custom colors if not in palette or already saved
-  const hex = extractBaseHex(props.value).toLowerCase();
-  const inPalette = row1().some(c => c.toLowerCase() === hex)
-    || main().some(c => c.toLowerCase() === hex);
-  const inCustom = customColors().some(c => c.toLowerCase() === hex);
-  if (!inPalette && !inCustom && hex.startsWith('#') && hex.length === 7) {
-    setCustomColors([hex, ...customColors()]);
-  }
+  // NOTE (L9.8): the picker no longer auto-adds the opened color to
+  // savedColors on mount. Pre-L9.8 every reopen of a drawing with a
+  // non-palette color pushed that color into savedColors (StockApp
+  // wires onSavedColorsChange to appState → localStorage), so editing
+  // 100 drawings with 100 distinct off-palette colors grew the saved
+  // list unboundedly. Saved colors now only accumulate via the
+  // explicit FullPicker "Add" button (handleAddColor below), which is
+  // the only path that represents a user intent to remember.
 
   // Close on outside click
   const handleOutsideClick = (e: MouseEvent) => {
@@ -275,11 +275,13 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
   };
 
   const P = mergeTokens(props.tokens);
-  const SWATCH = 18;
+  // The shared token, not a local literal: an outside caller sizes its own
+  // swatch from this so the two read as one control (see tokens.ts).
+  const SWATCH = PALETTE_SWATCH_SIZE;
   const GAP = 3;
 
   const swatchStyle = (c: string): JSX.CSSProperties => ({
-    width: `${SWATCH}px`, height: `${SWATCH}px`, "border-radius": '3px', background: c,
+    width: `${SWATCH}px`, height: `${SWATCH}px`, "border-radius": `${PALETTE_SWATCH_RADIUS}px`, background: c,
     cursor: 'pointer', "flex-shrink": '0', "box-sizing": 'border-box',
     border: c.toLowerCase() === current().toLowerCase()
       ? '2px solid #fff'
@@ -342,7 +344,7 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
             onClick={() => { fullPickerInitial = current(); setShowFull(true); }}
             title="Add custom color"
             style={{
-              width: `${SWATCH}px`, height: `${SWATCH}px`, "border-radius": '3px',
+              width: `${SWATCH}px`, height: `${SWATCH}px`, "border-radius": `${PALETTE_SWATCH_RADIUS}px`,
               background: P.bgInput, border: `1px solid ${P.borderHover}`,
               cursor: 'pointer', display: 'flex', "align-items": 'center', "justify-content": 'center',
               color: P.textDim, "font-size": '16px', "line-height": '1', "flex-shrink": '0',

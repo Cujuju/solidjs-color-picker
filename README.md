@@ -1,4 +1,4 @@
-# cujuju-solidjs-color-picker
+# @cujuju/solidjs-color-picker
 
 A TradingView-style color picker for [SolidJS](https://www.solidjs.com/) with canvas-based HSV controls, a curated palette grid, alpha/opacity support, saved custom colors, and EyeDropper API integration.
 
@@ -42,24 +42,37 @@ The full mode provides precision color picking:
 ## Installation
 
 ```bash
-npm install cujuju-solidjs-color-picker
+npm install @cujuju/solidjs-color-picker
 # or
-pnpm add cujuju-solidjs-color-picker
+pnpm add @cujuju/solidjs-color-picker
 # or
-yarn add cujuju-solidjs-color-picker
+yarn add @cujuju/solidjs-color-picker
 ```
 
 **Peer dependency:** `solid-js >= 1.7.0`
 
-For monorepo/local development, you can reference the package directly:
+For local development, clone this repo as a SIBLING of the consuming app and
+link it. A `link:` (not `file:`) keeps it a live symlink, so an edit here shows
+up in the app's dev server without a re-install or a re-publish:
 
 ```json
 {
   "dependencies": {
-    "cujuju-solidjs-color-picker": "file:../packages/cujuju-solidjs-color-picker"
+    "@cujuju/solidjs-color-picker": "link:../../solidjs-color-picker"
   }
 }
 ```
+
+Two things a linking consumer needs to know:
+
+- **Run `pnpm build` here after any API change.** The `exports` map has a
+  `solid` condition pointing at `src/`, so a Solid-aware bundler RUNS the
+  package from source — but `types` still points at `dist/`, so the consumer's
+  `tsc` reads the last build. Skip the build and a brand-new export looks
+  like it does not exist.
+- **Vite consumers must allow the path.** A linked package resolves outside the
+  app's root, and Vite's dev server refuses to serve that by default. Add the
+  sibling directory to `server.fs.allow`.
 
 ---
 
@@ -67,7 +80,7 @@ For monorepo/local development, you can reference the package directly:
 
 ```tsx
 import { createSignal } from 'solid-js';
-import { ColorSwatch } from 'cujuju-solidjs-color-picker';
+import { ColorSwatch } from '@cujuju/solidjs-color-picker';
 
 function App() {
   const [color, setColor] = createSignal('#6366f1');
@@ -92,7 +105,7 @@ function App() {
 Click-to-open swatch button that renders the picker via Solid's `<Portal>` into `document.body`. This escapes ancestor `transform`/`overflow` issues (e.g., modal dialogs).
 
 ```tsx
-import { ColorSwatch } from 'cujuju-solidjs-color-picker';
+import { ColorSwatch } from '@cujuju/solidjs-color-picker';
 ```
 
 | Prop | Type | Default | Description |
@@ -112,7 +125,7 @@ import { ColorSwatch } from 'cujuju-solidjs-color-picker';
 The picker panel itself (without the swatch button or portal). Use this if you want to embed the picker inline or manage your own open/close and positioning logic.
 
 ```tsx
-import { CompactColorPicker } from 'cujuju-solidjs-color-picker';
+import { CompactColorPicker } from '@cujuju/solidjs-color-picker';
 ```
 
 | Prop | Type | Default | Description |
@@ -174,7 +187,7 @@ Vertical brightness slider (top = bright, bottom = dark).
 All color conversion functions are pure, dependency-free, and exported for standalone use.
 
 ```tsx
-import { hexToHsv, hsvToHex, hsvToRgb, extractAlpha, extractBaseHex, applyAlpha, parseRgbInput } from 'cujuju-solidjs-color-picker';
+import { hexToHsv, hsvToHex, hsvToRgb, extractAlpha, extractBaseHex, applyAlpha, parseRgbInput } from '@cujuju/solidjs-color-picker';
 ```
 
 #### `hexToHsv(hex: string): HsvColor`
@@ -251,8 +264,8 @@ Runtime check for the EyeDropper API (Chromium 95+).
 ### Design Tokens
 
 ```tsx
-import { DEFAULT_TOKENS, SWATCH_SIZE, mergeTokens } from 'cujuju-solidjs-color-picker';
-import type { PickerTokens } from 'cujuju-solidjs-color-picker';
+import { DEFAULT_TOKENS, SWATCH_SIZE, mergeTokens } from '@cujuju/solidjs-color-picker';
+import type { PickerTokens } from '@cujuju/solidjs-color-picker';
 ```
 
 #### `DEFAULT_TOKENS: PickerTokens`
@@ -289,7 +302,7 @@ Merge partial token overrides with defaults. Returns a complete `PickerTokens` o
 ### Palette Data
 
 ```tsx
-import { TV_PALETTE_ROW1, TV_PALETTE_MAIN } from 'cujuju-solidjs-color-picker';
+import { TV_PALETTE_ROW1, TV_PALETTE_MAIN } from '@cujuju/solidjs-color-picker';
 ```
 
 #### `TV_PALETTE_ROW1: string[]`
@@ -308,7 +321,7 @@ import { TV_PALETTE_ROW1, TV_PALETTE_MAIN } from 'cujuju-solidjs-color-picker';
 
 ```tsx
 import { createSignal } from 'solid-js';
-import { ColorSwatch } from 'cujuju-solidjs-color-picker';
+import { ColorSwatch } from '@cujuju/solidjs-color-picker';
 
 function BasicExample() {
   const [color, setColor] = createSignal('#ef5350');
@@ -320,7 +333,7 @@ function BasicExample() {
 
 ```tsx
 import { createSignal } from 'solid-js';
-import { ColorSwatch } from 'cujuju-solidjs-color-picker';
+import { ColorSwatch } from '@cujuju/solidjs-color-picker';
 
 function PersistentExample() {
   const [color, setColor] = createSignal('#03a9f4');
@@ -350,7 +363,7 @@ function PersistentExample() {
 ### With Custom Palette
 
 ```tsx
-import { ColorSwatch } from 'cujuju-solidjs-color-picker';
+import { ColorSwatch } from '@cujuju/solidjs-color-picker';
 
 // Brand colors only
 const brandGrays = ['#ffffff', '#f5f5f5', '#e0e0e0', '#9e9e9e', '#616161', '#212121'];
@@ -372,8 +385,8 @@ function BrandPicker() {
 ### Custom Theming (Light Mode)
 
 ```tsx
-import { ColorSwatch } from 'cujuju-solidjs-color-picker';
-import type { PickerTokens } from 'cujuju-solidjs-color-picker';
+import { ColorSwatch } from '@cujuju/solidjs-color-picker';
+import type { PickerTokens } from '@cujuju/solidjs-color-picker';
 
 const lightTokens: Partial<PickerTokens> = {
   bg: '#ffffff',
@@ -434,7 +447,7 @@ function ControlledExample() {
 Use `CompactColorPicker` directly for embedding the picker panel inline:
 
 ```tsx
-import { CompactColorPicker } from 'cujuju-solidjs-color-picker';
+import { CompactColorPicker } from '@cujuju/solidjs-color-picker';
 
 function InlinePicker() {
   const [color, setColor] = createSignal('#42a5f5');
@@ -544,7 +557,7 @@ import type {
   FullPickerProps,
   CompactColorPickerProps,
   ColorSwatchProps,
-} from 'cujuju-solidjs-color-picker';
+} from '@cujuju/solidjs-color-picker';
 ```
 
 ---

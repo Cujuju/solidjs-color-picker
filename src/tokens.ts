@@ -28,6 +28,19 @@ export const DEFAULT_TOKENS: PickerTokens = {
 /** Default swatch size used by ColorSwatch (pixels) */
 export const SWATCH_SIZE = 26;
 
+/**
+ * Edge length (px) of ONE preset cell in the picker's palette grid, and the
+ * corner radius those cells are drawn with.
+ *
+ * Exported because callers outside this package render swatches that should read
+ * as the SAME control as the palette the picker opens — a standalone swatch at a
+ * different size/radius looks like a different widget. `PALETTE_SWATCH_SIZE`
+ * happens to produce `PALETTE_SWATCH_RADIUS` through ColorSwatch's own
+ * size-proportional radius formula, so passing it as `size` matches on both axes.
+ */
+export const PALETTE_SWATCH_SIZE = 18;
+export const PALETTE_SWATCH_RADIUS = 3;
+
 /** Merge user-provided partial tokens with defaults */
 export function mergeTokens(overrides?: Partial<PickerTokens>): PickerTokens {
   if (!overrides) return DEFAULT_TOKENS;
