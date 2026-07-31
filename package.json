@@ -52,6 +52,7 @@
   "scripts": {
     "build": "vite build",
     "typecheck": "tsc --noEmit",
+    "test": "node --test \"src/**/*.test.ts\"",
     "prepublishOnly": "vite build"
   },
   "publishConfig": {

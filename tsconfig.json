@@ -18,5 +18,11 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["src"]
+  // Tests are excluded from the library compile: they must not land in the
+  // published build, and they import node: builtins whose types would pull in
+  // an @types/node devDependency this zero-dependency package does not carry.
+  // They typecheck implicitly by running under `node --test`, which strips
+  // types at load and would throw on a genuinely bad import.
+  "include": ["src"],
+  "exclude": ["src/**/__tests__"]
 }
