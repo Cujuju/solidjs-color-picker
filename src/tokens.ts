@@ -23,6 +23,7 @@ export const DEFAULT_TOKENS: PickerTokens = {
   textDim: '#475569',
   fontSizeSm: 12,
   accent: '#6366f1',
+  textOnAccent: '#fff',
 };
 
 /** Default swatch size used by ColorSwatch (pixels) */

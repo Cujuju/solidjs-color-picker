@@ -25,6 +25,12 @@ import { ShadeSlider } from './canvas/ShadeSlider';
  * FullPicker — saturation square + hue slider + shade slider + hex/RGB inputs.
  * Opened from CompactColorPicker's "+" button to create custom colors.
  */
+/**
+ * Action-button label layout, stated rather than left to the user agent: host apps commonly reset
+ * `button { text-align: inherit; font: inherit }`, which left-aligned Cancel/Ok/Add.
+ */
+const ACTION_TEXT: JSX.CSSProperties = { "text-align": 'center', "font-family": 'inherit', "line-height": '1' };
+
 function FullPicker(props: FullPickerProps) {
   // Parse initial color into HSV
   const initHsv = hexToHsv(extractBaseHex(props.initial));
@@ -151,6 +157,7 @@ function FullPicker(props: FullPickerProps) {
         <div style={{ flex: '1', display: 'flex', "align-items": 'center', gap: `${P.gap}px` }}>
           {supportsEyeDropper && (
             <button
+              type="button"
               onClick={handleEyeDropper}
               title="Pick color from screen"
               style={{
@@ -175,17 +182,19 @@ function FullPicker(props: FullPickerProps) {
         {/* Right col: Cancel + Add */}
         <div style={{ flex: '1', display: 'flex', "align-items": 'center', gap: `${P.gap}px` }}>
           <button
+            type="button"
             onClick={props.onCancel}
             style={{
               flex: '1', background: P.bgInput, border: `1px solid ${P.border}`, "border-radius": `${P.radiusSm}px`,
-              color: P.textMuted, "font-size": `${P.fontSizeSm}px`, height: `${btnH}px`, padding: '0', cursor: 'pointer',
+              color: P.textMuted, "font-size": `${P.fontSizeSm}px`, height: `${btnH}px`, padding: '0', cursor: 'pointer', ...ACTION_TEXT,
             }}
           >Cancel</button>
           <button
+            type="button"
             onClick={() => props.onAdd(preview())}
             style={{
               flex: '1', background: P.accent, border: 'none', "border-radius": `${P.radiusSm}px`,
-              color: '#fff', "font-size": `${P.fontSizeSm}px`, "font-weight": '600', height: `${btnH}px`, padding: '0', cursor: 'pointer',
+              color: P.textOnAccent, "font-size": `${P.fontSizeSm}px`, "font-weight": '600', height: `${btnH}px`, padding: '0', cursor: 'pointer', ...ACTION_TEXT,
             }}
           >Add</button>
         </div>
@@ -367,6 +376,7 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
                   <span style={{ "font-size": '11px', color: P.textMuted, "font-family": 'monospace' }}>{menu().color.toUpperCase()}</span>
                 </div>
                 <button
+                  type="button"
                   onClick={() => handleDeleteColor(menu().color)}
                   style={{
                     display: 'block', width: '100%', "text-align": 'left',
@@ -381,47 +391,51 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
 
         <div style={{ "border-top": `1px solid ${P.border}`, "margin-bottom": `${P.gap}px` }} />
 
-        {/* Opacity row */}
-        <div style={{ display: 'flex', "align-items": 'center', gap: `${P.gapSm}px`, "margin-bottom": `${P.gap}px` }}>
-          <span style={{ "font-size": `${P.fontSizeSm}px`, color: P.textDim, "flex-shrink": '0' }}>Opacity</span>
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={alpha()}
-            onInput={(e) => handleAlphaSlider(Number(e.currentTarget.value))}
-            style={{ flex: '1', "min-width": '0', "accent-color": P.accent, cursor: 'pointer' }}
-          />
-          <input
-            value={alphaInput()}
-            onInput={(e) => handleAlphaInput(e.currentTarget.value)}
-            onBlur={() => setAlphaInput(String(alpha()))}
-            style={{
-              width: '36px', background: P.bgInput, border: `1px solid ${P.border}`,
-              "border-radius": `${P.radiusSm}px`, padding: '3px 4px', "font-size": `${P.fontSizeSm}px`,
-              color: P.text, "text-align": 'right', "font-family": 'monospace',
-              "flex-shrink": '0', "box-sizing": 'border-box',
-            }}
-          />
-          <span style={{ "font-size": `${P.fontSizeSm}px`, color: P.textDim, "flex-shrink": '0' }}>%</span>
-        </div>
+        {/* Opacity row: hidden when the host takes opaque colours only */}
+        <Show when={props.alpha !== false}>
+          <div style={{ display: 'flex', "align-items": 'center', gap: `${P.gapSm}px`, "margin-bottom": `${P.gap}px` }}>
+            <span style={{ "font-size": `${P.fontSizeSm}px`, color: P.textDim, "flex-shrink": '0' }}>Opacity</span>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={alpha()}
+              onInput={(e) => handleAlphaSlider(Number(e.currentTarget.value))}
+              style={{ flex: '1', "min-width": '0', "accent-color": P.accent, cursor: 'pointer' }}
+            />
+            <input
+              value={alphaInput()}
+              onInput={(e) => handleAlphaInput(e.currentTarget.value)}
+              onBlur={() => setAlphaInput(String(alpha()))}
+              style={{
+                width: '36px', background: P.bgInput, border: `1px solid ${P.border}`,
+                "border-radius": `${P.radiusSm}px`, padding: '3px 4px', "font-size": `${P.fontSizeSm}px`,
+                color: P.text, "text-align": 'right', "font-family": 'monospace',
+                "flex-shrink": '0', "box-sizing": 'border-box',
+              }}
+            />
+            <span style={{ "font-size": `${P.fontSizeSm}px`, color: P.textDim, "flex-shrink": '0' }}>%</span>
+          </div>
 
-        <div style={{ "border-top": `1px solid ${P.border}`, "margin-bottom": `${P.gap}px` }} />
+          <div style={{ "border-top": `1px solid ${P.border}`, "margin-bottom": `${P.gap}px` }} />
+        </Show>
 
         {/* Ok / Cancel */}
         <div style={{ display: 'flex', gap: `${P.gap}px` }}>
           <button
+            type="button"
             onClick={() => { props.onChange(original); props.onClose(); }}
             style={{
               flex: '1', background: P.bgInput, border: `1px solid ${P.border}`, "border-radius": `${P.radiusSm}px`,
-              color: P.textMuted, "font-size": `${P.fontSizeSm}px`, height: '26px', padding: '0', cursor: 'pointer',
+              color: P.textMuted, "font-size": `${P.fontSizeSm}px`, height: '26px', padding: '0', cursor: 'pointer', ...ACTION_TEXT,
             }}
           >Cancel</button>
           <button
+            type="button"
             onClick={props.onClose}
             style={{
               flex: '1', background: P.accent, border: 'none', "border-radius": `${P.radiusSm}px`,
-              color: '#fff', "font-size": `${P.fontSizeSm}px`, "font-weight": '600', height: '26px', padding: '0', cursor: 'pointer',
+              color: P.textOnAccent, "font-size": `${P.fontSizeSm}px`, "font-weight": '600', height: '26px', padding: '0', cursor: 'pointer', ...ACTION_TEXT,
             }}
           >Ok</button>
         </div>

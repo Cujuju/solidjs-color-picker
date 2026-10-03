@@ -206,6 +206,7 @@ export function ColorSwatch(props: ColorSwatchProps) {
               paletteRow1={props.paletteRow1}
               paletteMain={props.paletteMain}
               tokens={props.tokens}
+              alpha={props.alpha}
             />
           </div>
         </Portal>

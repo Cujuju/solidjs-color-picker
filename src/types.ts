@@ -31,6 +31,8 @@ export interface PickerTokens {
   textDim: string;
   fontSizeSm: number;
   accent: string;
+  /** Label colour on accent-filled buttons (Ok, Add); pick one that contrasts with `accent`. */
+  textOnAccent: string;
 }
 
 // ── Context menu state ───────────────────────────────────────────────────────
@@ -99,6 +101,8 @@ export interface CompactColorPickerProps {
   paletteMain?: string[];
   /** Override design tokens */
   tokens?: Partial<PickerTokens>;
+  /** Show the opacity control (default true); false for hosts that take opaque colours only. */
+  alpha?: boolean;
 }
 
 /** Props for the ColorSwatch click-to-open wrapper */
@@ -121,4 +125,6 @@ export interface ColorSwatchProps {
   paletteMain?: string[];
   /** Override design tokens */
   tokens?: Partial<PickerTokens>;
+  /** Show the opacity control (default true); false for hosts that take opaque colours only. */
+  alpha?: boolean;
 }
