@@ -107,6 +107,8 @@ export interface CompactColorPickerProps {
 
 /** Props for the ColorSwatch click-to-open wrapper */
 export interface ColorSwatchProps {
+  /** Accessible name for the swatch button (default: "Colour <value>") */
+  label?: string;
   /** Current color value */
   value: string;
   /** Callback when color changes */

@@ -250,6 +250,13 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
   document.addEventListener('mousedown', handleOutsideClick, true);
   onCleanup(() => document.removeEventListener('mousedown', handleOutsideClick, true));
 
+  // Keyboard focus moves into the panel (and into the full picker when it swaps in). A frame later: ColorSwatch shows
+  // the popover, and measures it, after mount; an element still hidden can't take focus.
+  createEffect(() => {
+    showFull();
+    requestAnimationFrame(() => containerEl?.focus({ preventScroll: true }));
+  });
+
   const applyColor = (hex: string, a: number) => {
     setCurrent(hex);
     props.onChange(applyAlpha(hex, a));
@@ -283,6 +290,9 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
     }
   };
 
+  /** Cancel (button or Escape): the colour the picker opened with, then close. */
+  const cancel = () => { props.onChange(original); props.onClose(); };
+
   const P = mergeTokens(props.tokens);
   // The shared token, not a local literal: an outside caller sizes its own
   // swatch from this so the two read as one control (see tokens.ts).
@@ -291,7 +301,7 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
 
   const swatchStyle = (c: string): JSX.CSSProperties => ({
     width: `${SWATCH}px`, height: `${SWATCH}px`, "border-radius": `${PALETTE_SWATCH_RADIUS}px`, background: c,
-    cursor: 'pointer', "flex-shrink": '0', "box-sizing": 'border-box',
+    cursor: 'pointer', "flex-shrink": '0', "box-sizing": 'border-box', padding: '0',
     border: c.toLowerCase() === current().toLowerCase()
       ? '2px solid #fff'
       : '1px solid rgba(255,255,255,0.15)',
@@ -302,7 +312,7 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
 
   return (
     <Show when={!showFull()} fallback={
-      <div ref={containerEl}>
+      <div ref={containerEl} role="dialog" aria-label="Custom colour" tabindex="-1" onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); props.onChange(original); setShowFull(false); } }}>
         <FullPicker
           initial={fullPickerInitial}
           onAdd={handleAddColor}
@@ -314,6 +324,10 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
     }>
       <div
         ref={containerEl}
+        role="dialog"
+        aria-label="Colour picker"
+        tabindex="-1"
+        onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); cancel(); } }}
         style={{
           background: P.bg, border: `1px solid ${P.border}`, "border-radius": `${P.radius}px`,
           padding: `${P.pad}px`, "box-shadow": '0 8px 32px rgba(0,0,0,0.7)',
@@ -323,7 +337,7 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
         {/* Row 1: grayscale (10 swatches) */}
         <div style={{ display: 'flex', gap: `${GAP}px`, "margin-bottom": '6px' }}>
           {row1().map((c) => (
-            <div onClick={() => selectColor(c)} title={c} style={swatchStyle(c)} />
+            <button type="button" onClick={() => selectColor(c)} title={c} aria-label={c} aria-pressed={c.toLowerCase() === current().toLowerCase()} style={swatchStyle(c)} />
           ))}
         </div>
 
@@ -333,7 +347,7 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
         {/* Main palette grid 10x7 */}
         <div style={{ display: 'grid', "grid-template-columns": `repeat(10, ${SWATCH}px)`, gap: `${GAP}px`, "margin-bottom": '8px' }}>
           {main().map((c) => (
-            <div onClick={() => selectColor(c)} title={c} style={swatchStyle(c)} />
+            <button type="button" onClick={() => selectColor(c)} title={c} aria-label={c} aria-pressed={c.toLowerCase() === current().toLowerCase()} style={swatchStyle(c)} />
           ))}
         </div>
 
@@ -342,23 +356,29 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
         {/* Custom colors + add button */}
         <div style={{ display: 'flex', "flex-wrap": 'wrap', gap: `${GAP}px`, "margin-bottom": `${P.gap}px`, "align-items": 'center' }}>
           {customColors().map((c) => (
-            <div
+            <button
+              type="button"
               onClick={() => selectColor(c)}
               onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setCtxMenu({ x: e.clientX, y: e.clientY, color: c }); }}
               title={c}
+              aria-label={`Saved colour ${c}`}
+              aria-pressed={c.toLowerCase() === current().toLowerCase()}
               style={swatchStyle(c)}
             />
           ))}
-          <div
+          <button
+            type="button"
             onClick={() => { fullPickerInitial = current(); setShowFull(true); }}
             title="Add custom color"
+            aria-label="Add custom color"
             style={{
+              padding: '0',
               width: `${SWATCH}px`, height: `${SWATCH}px`, "border-radius": `${PALETTE_SWATCH_RADIUS}px`,
               background: P.bgInput, border: `1px solid ${P.borderHover}`,
               cursor: 'pointer', display: 'flex', "align-items": 'center', "justify-content": 'center',
               color: P.textDim, "font-size": '16px', "line-height": '1', "flex-shrink": '0',
             }}
-          >+</div>
+          >+</button>
         </div>
 
         {/* Context menu for custom color delete */}
@@ -424,7 +444,7 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
         <div style={{ display: 'flex', gap: `${P.gap}px` }}>
           <button
             type="button"
-            onClick={() => { props.onChange(original); props.onClose(); }}
+            onClick={cancel}
             style={{
               flex: '1', background: P.bgInput, border: `1px solid ${P.border}`, "border-radius": `${P.radiusSm}px`,
               color: P.textMuted, "font-size": `${P.fontSizeSm}px`, height: '26px', padding: '0', cursor: 'pointer', ...ACTION_TEXT,

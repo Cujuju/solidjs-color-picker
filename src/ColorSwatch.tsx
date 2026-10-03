@@ -79,6 +79,17 @@ export function ColorSwatch(props: ColorSwatchProps) {
   };
 
   /** Toggle the picker. Position is resolved after mount, once measurable. */
+  let openerEl: HTMLButtonElement | undefined;
+  /**
+   * Closes the picker and returns focus to the swatch that opened it, when focus was in the picker (an outside click's
+   * own target takes focus after this runs, so it isn't stolen).
+   */
+  const close = () => {
+    const focusWasInside = !!portalEl && portalEl.contains(document.activeElement);
+    setOpen(false);
+    if (focusWasInside) openerEl?.focus();
+  };
+
   const handleOpen = () => {
     const willOpen = !open();
     // Drop the stale position when opening so the next open re-measures
@@ -143,11 +154,16 @@ export function ColorSwatch(props: ColorSwatchProps) {
 
   return (
     <div ref={swatchEl} style={{ display: 'inline-flex', "align-items": 'center' }}>
-      <div
+      <button
+        type="button"
+        ref={openerEl}
         onClick={handleOpen}
         title={props.value}
+        aria-label={props.label ?? `Colour ${props.value}`}
+        aria-haspopup="dialog"
+        aria-expanded={open()}
         style={{
-          width: `${size()}px`, height: `${size()}px`,
+          width: `${size()}px`, height: `${size()}px`, padding: '0', display: 'block',
           "border-radius": `${Math.round(size() * SWATCH_RADIUS_RATIO)}px`,
           background: props.value,
           border: props.noBorder ? 'none' : `1px solid ${tokens().border}`,
@@ -200,7 +216,7 @@ export function ColorSwatch(props: ColorSwatchProps) {
             <CompactColorPicker
               value={props.value}
               onChange={props.onChange}
-              onClose={() => setOpen(false)}
+              onClose={close}
               savedColors={props.savedColors}
               onSavedColorsChange={props.onSavedColorsChange}
               paletteRow1={props.paletteRow1}
