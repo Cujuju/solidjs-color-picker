@@ -13,6 +13,18 @@ export interface HsvColor {
   v: number;
 }
 
+/** RGB color, each channel 0-255 */
+export interface RgbColor {
+  r: number;
+  g: number;
+  b: number;
+}
+
+/** RGB color plus alpha 0-1 */
+export interface RgbaColor extends RgbColor {
+  a: number;
+}
+
 // ── Design tokens ────────────────────────────────────────────────────────────
 
 /** Overridable design tokens for the picker panel */
@@ -76,6 +88,7 @@ export interface ShadeSliderProps {
 
 /** Props for the FullPicker (saturation/hue/shade based advanced picker) */
 export interface FullPickerProps {
+  /** Starting colour, 6-digit hex. */
   initial: string;
   onAdd: (hex: string) => void;
   onCancel: () => void;

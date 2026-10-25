@@ -186,15 +186,29 @@ Vertical brightness slider (top = bright, bottom = dark).
 
 ### Utility Functions
 
-All color conversion functions are pure, dependency-free, and exported for standalone use.
+All color conversion functions are pure, dependency-free, and exported for standalone use. Every string input is read by `parseColor`, so all helpers accept the same formats.
 
 ```tsx
-import { hexToHsv, hsvToHex, hsvToRgb, extractAlpha, extractBaseHex, applyAlpha, parseRgbInput } from '@cujuju/solidjs-color-picker';
+import { parseColor, rgbToHex, rgbToHsv, hexToHsv, hsvToHex, hsvToRgb, extractAlpha, extractBaseHex, applyAlpha, parseRgbInput } from '@cujuju/solidjs-color-picker';
 ```
+
+#### `parseColor(color: string): RgbaColor | null`
+
+Read `#rgb`, `#rgba`, `#rrggbb`, `#rrggbbaa`, `rgb()` or `rgba()` (comma or space syntax; alpha as a 0-1 number or a percentage). Channels are 0-255, alpha 0-1; out-of-range parts clamp as in CSS. Returns null for anything else (named colours, `hsl()`, malformed strings).
+
+```ts
+parseColor('#f638');                  // => { r: 255, g: 102, b: 51, a: 0.533 }
+parseColor('rgb(255 102 51 / 50%)');  // => { r: 255, g: 102, b: 51, a: 0.5 }
+parseColor('red');                    // => null
+```
+
+#### `rgbToHex(rgb: RgbColor): string` · `rgbToHsv(rgb: RgbColor): HsvColor`
+
+Convert RGB (0-255) to 6-digit hex, or to HSV.
 
 #### `hexToHsv(hex: string): HsvColor`
 
-Convert a hex color string (`#rrggbb`) to HSV.
+Convert a hex color string (3, 4, 6 or 8 digits, `#` optional; alpha ignored) to HSV. Throws `TypeError` on anything that is not hex.
 
 ```ts
 hexToHsv('#ff6b35');
@@ -221,7 +235,7 @@ hsvToRgb({ h: 120, s: 100, v: 100 });
 
 #### `extractAlpha(color: string): number`
 
-Extract the alpha channel (0-100) from a color string. Supports `rgba()` (number or percentage alpha), 8-digit hex, and plain hex (returns 100).
+Extract the alpha channel (0-100) from any `parseColor` format. Returns 100 when the string has no alpha or does not parse.
 
 ```ts
 extractAlpha('#ff6b3580');  // => 50
@@ -232,7 +246,7 @@ extractAlpha('#ff6b35');  // => 100
 
 #### `extractBaseHex(color: string): string`
 
-Strip alpha from any color string and return the base 7-character hex.
+Return the base color as lowercase 7-character hex, alpha dropped. A string `parseColor` can't read is returned trimmed and unchanged.
 
 ```ts
 extractBaseHex('#ff6b3580');  // => "#ff6b35"
@@ -242,7 +256,7 @@ extractBaseHex('#f63');  // => "#ff6633"
 
 #### `applyAlpha(hex: string, alpha: number): string`
 
-Apply an alpha value (0-100) to a hex color. Returns 8-digit hex when alpha < 100, standard hex otherwise.
+Apply an alpha value (0-100, clamped) to a hex color. Returns 8-digit hex when alpha < 100, standard hex otherwise.
 
 ```ts
 applyAlpha('#ff6b35', 50);   // => "#ff6b3580"

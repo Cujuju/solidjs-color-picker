@@ -1,47 +1,73 @@
 /**
- * Color conversion utilities — HSV, RGB, Hex, alpha helpers.
+ * Color conversion utilities — parsing, HSV/RGB/hex conversion, alpha helpers.
  *
- * All functions are pure and have zero dependencies.
- * They can be used standalone without any picker component.
+ * Pure, dependency-free, usable without any picker component. Every string input goes through `parseColor`.
  */
 
-import type { HsvColor } from './types';
+import type { HsvColor, RgbColor, RgbaColor } from './types';
 
-// ── HSV / RGB / Hex conversions ──────────────────────────────────────────────
+// ── Parsing ──────────────────────────────────────────────────────────────────
+
+const HEX_RE = /^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
+/** rgb()/rgba() in comma or space syntax; alpha after `,` or `/`, as a 0-1 number or a percentage. */
+const RGB_FN_RE = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)(?:\s*[,/]\s*([\d.]+)(%?))?\s*\)$/i;
+const CHANNEL_MAX = 255;
+const PERCENT = 100;
+
+const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
 /**
- * Convert hex (#rrggbb) to HSV.
- * @returns HsvColor with h: 0-360, s: 0-100, v: 0-100
+ * Parse #rgb, #rgba, #rrggbb, #rrggbbaa, rgb() or rgba(). Out-of-range parts clamp, as in CSS.
+ * @returns channels 0-255 and alpha 0-1, or null for anything else (named colours, hsl(), malformed)
  */
-export function hexToHsv(hex: string): HsvColor {
-  const h6 = hex.startsWith('#') ? hex.slice(1, 7) : hex.slice(0, 6);
-  const r = parseInt(h6.slice(0, 2), 16) / 255;
-  const g = parseInt(h6.slice(2, 4), 16) / 255;
-  const b = parseInt(h6.slice(4, 6), 16) / 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const d = max - min;
-  let hue = 0;
-  if (d !== 0) {
-    if (max === r) hue = ((g - b) / d + (g < b ? 6 : 0)) * 60;
-    else if (max === g) hue = ((b - r) / d + 2) * 60;
-    else hue = ((r - g) / d + 4) * 60;
+export function parseColor(color: string): RgbaColor | null {
+  const s = color.trim();
+  const hex = HEX_RE.exec(s);
+  if (hex) {
+    const digits = hex[1].length <= 4 ? [...hex[1]].map((c) => c + c).join('') : hex[1];
+    const byte = (i: number) => parseInt(digits.slice(i * 2, i * 2 + 2), 16);
+    return { r: byte(0), g: byte(1), b: byte(2), a: digits.length === 8 ? byte(3) / CHANNEL_MAX : 1 };
   }
-  const sat = max === 0 ? 0 : (d / max) * 100;
-  const val = max * 100;
-  return { h: hue, s: sat, v: val };
+  const fn = RGB_FN_RE.exec(s);
+  if (!fn) return null;
+  const [r, g, b] = fn.slice(1, 4).map((c) => clamp(Math.round(parseFloat(c)), 0, CHANNEL_MAX));
+  const a = fn[4] === undefined ? 1 : parseFloat(fn[4]) / (fn[5] ? PERCENT : 1);
+  return { r, g, b, a: clamp(a, 0, 1) };
 }
 
 /**
- * Convert HSV to 6-digit hex string.
- * @param hsv - h: 0-360, s: 0-100, v: 0-100
- * @returns Hex string like "#ff0000"
+ * Parse "r, g, b" text input into RGB values.
+ * Accepts comma-separated or space-separated values.
+ * @returns RGB object or null if parsing fails
  */
-export function hsvToHex(hsv: HsvColor): string {
-  const { h, s, v } = hsv;
-  const sn = s / 100;
-  const vn = v / 100;
-  const c = vn * sn;
+export function parseRgbInput(input: string): RgbColor | null {
+  const parts = input.trim().split(/[\s,]+/).map(Number);
+  if (parts.length === 3 && parts.every((n) => Number.isInteger(n) && n >= 0 && n <= CHANNEL_MAX)) {
+    return { r: parts[0], g: parts[1], b: parts[2] };
+  }
+  return null;
+}
+
+// ── HSV / RGB / Hex conversions ──────────────────────────────────────────────
+
+/** Convert RGB (0-255) to HSV (h 0-360, s and v 0-100). */
+export function rgbToHsv({ r, g, b }: RgbColor): HsvColor {
+  const [rn, gn, bn] = [r, g, b].map((c) => c / CHANNEL_MAX);
+  const max = Math.max(rn, gn, bn);
+  const d = max - Math.min(rn, gn, bn);
+  let hue = 0;
+  if (d !== 0) {
+    if (max === rn) hue = ((gn - bn) / d + (gn < bn ? 6 : 0)) * 60;
+    else if (max === gn) hue = ((bn - rn) / d + 2) * 60;
+    else hue = ((rn - gn) / d + 4) * 60;
+  }
+  return { h: hue, s: max === 0 ? 0 : (d / max) * PERCENT, v: max * PERCENT };
+}
+
+/** Convert HSV (h 0-360, s and v 0-100) to RGB (0-255). */
+export function hsvToRgb({ h, s, v }: HsvColor): RgbColor {
+  const vn = v / PERCENT;
+  const c = vn * (s / PERCENT);
   const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
   const m = vn - c;
   let r = 0, g = 0, b = 0;
@@ -51,68 +77,51 @@ export function hsvToHex(hsv: HsvColor): string {
   else if (h < 240) { g = x; b = c; }
   else if (h < 300) { r = x; b = c; }
   else { r = c; b = x; }
-  const toHex = (n: number) => Math.round((n + m) * 255).toString(16).padStart(2, '0');
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+  const to255 = (n: number) => Math.round((n + m) * CHANNEL_MAX);
+  return { r: to255(r), g: to255(g), b: to255(b) };
+}
+
+/** Convert RGB (0-255) to a 6-digit hex string like "#ff0000". */
+export function rgbToHex({ r, g, b }: RgbColor): string {
+  return `#${[r, g, b].map((n) => n.toString(16).padStart(2, '0')).join('')}`;
+}
+
+/** Convert HSV to a 6-digit hex string like "#ff0000". */
+export function hsvToHex(hsv: HsvColor): string {
+  return rgbToHex(hsvToRgb(hsv));
 }
 
 /**
- * Convert HSV to RGB object.
- * @returns Object with r, g, b each 0-255
+ * Convert hex (3, 4, 6 or 8 digits; "#" optional) to HSV, ignoring alpha.
+ * @throws TypeError when `hex` is not a hex colour
  */
-export function hsvToRgb(hsv: HsvColor): { r: number; g: number; b: number } {
-  const hex = hsvToHex(hsv);
-  return {
-    r: parseInt(hex.slice(1, 3), 16),
-    g: parseInt(hex.slice(3, 5), 16),
-    b: parseInt(hex.slice(5, 7), 16),
-  };
+export function hexToHsv(hex: string): HsvColor {
+  const c = parseColor(hex.startsWith('#') ? hex : `#${hex}`);
+  if (!c) throw new TypeError(`hexToHsv: not a hex colour: "${hex}"`);
+  return rgbToHsv(c);
 }
 
-/** Convert 0-255 channels to a 6-digit hex string like "#ff0000". */
-export function rgbToHex(r: number, g: number, b: number): string {
-  return `#${[r, g, b].map((n) => n.toString(16).padStart(2, '0')).join('')}`;
+/** `next`, keeping what it leaves undetermined from `prev`: hue for a grey, hue and saturation for black. */
+export function carryHsv(next: HsvColor, prev: HsvColor): HsvColor {
+  if (next.v === 0) return { ...next, h: prev.h, s: prev.s };
+  if (next.s === 0) return { ...next, h: prev.h };
+  return next;
 }
 
 // ── Alpha helpers ────────────────────────────────────────────────────────────
 
-/**
- * Extract alpha (0-100) from a color string.
- * Supports rgba(), 8-digit hex (#rrggbbaa), and plain hex (returns 100).
- */
+/** Alpha (0-100) of any `parseColor` format; 100 when the string has no alpha or does not parse. */
 export function extractAlpha(color: string): number {
-  const trimmed = color.trim();
-  // rgba(r, g, b, a) or rgba(r g b / a); a is a 0-1 number or a percentage
-  const rgbaMatch = trimmed.match(/rgba?\(\s*[\d.]+[\s,]+[\d.]+[\s,]+[\d.]+[\s,/]+\s*([\d.]+)(%?)\s*\)/i);
-  if (rgbaMatch) {
-    const a = parseFloat(rgbaMatch[1]);
-    return Math.round(rgbaMatch[2] || a > 1 ? a : a * 100);
-  }
-  // 8-digit hex (#rrggbbaa)
-  if (/^#[0-9a-fA-F]{8}$/.test(trimmed)) {
-    const aa = parseInt(trimmed.slice(7, 9), 16);
-    return Math.round((aa / 255) * 100);
-  }
-  return 100;
+  return Math.round((parseColor(color)?.a ?? 1) * PERCENT);
 }
 
 /**
- * Extract the base hex color (without alpha) from rgba or hex string.
- * @returns 7-character hex string like "#ff0000"
+ * The 7-character base hex ("#ff0000") of any `parseColor` format, alpha dropped.
+ * A string that does not parse is returned trimmed and unchanged.
  */
 export function extractBaseHex(color: string): string {
-  const trimmed = color.trim();
-  // rgba(r, g, b, a)
-  const rgbaMatch = trimmed.match(/rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i);
-  if (rgbaMatch) {
-    const [r, g, b] = rgbaMatch.slice(1, 4).map((c) => Math.round(parseFloat(c)));
-    return rgbToHex(r, g, b);
-  }
-  // 3-digit hex -> expand each digit
-  if (/^#[0-9a-fA-F]{3}$/.test(trimmed)) return `#${[...trimmed.slice(1)].map((c) => c + c).join('')}`;
-  // 8-digit hex -> strip alpha
-  if (/^#[0-9a-fA-F]{8}$/.test(trimmed)) return trimmed.slice(0, 7);
-  // Already 6-digit hex or other
-  return trimmed;
+  const c = parseColor(color);
+  return c ? rgbToHex(c) : color.trim();
 }
 
 /**
@@ -120,25 +129,10 @@ export function extractBaseHex(color: string): string {
  * If alpha >= 100, returns standard 6-digit hex.
  */
 export function applyAlpha(hex: string, alpha: number): string {
-  const base = hex.startsWith('#') ? hex.slice(1, 7) : hex.slice(0, 6);
-  if (alpha >= 100) return `#${base}`;
-  const aa = Math.round((alpha / 100) * 255).toString(16).padStart(2, '0');
-  return `#${base}${aa}`;
-}
-
-// ── Input parsing ────────────────────────────────────────────────────────────
-
-/**
- * Parse "r, g, b" text input into RGB values.
- * Accepts comma-separated or space-separated values.
- * @returns RGB object or null if parsing fails
- */
-export function parseRgbInput(input: string): { r: number; g: number; b: number } | null {
-  const parts = input.trim().split(/[\s,]+/).map(s => parseInt(s, 10));
-  if (parts.length === 3 && parts.every(n => !isNaN(n) && n >= 0 && n <= 255)) {
-    return { r: parts[0], g: parts[1], b: parts[2] };
-  }
-  return null;
+  const base = extractBaseHex(hex.startsWith('#') ? hex : `#${hex}`);
+  const a = clamp(alpha, 0, PERCENT);
+  if (a === PERCENT) return base;
+  return base + Math.round((a / PERCENT) * CHANNEL_MAX).toString(16).padStart(2, '0');
 }
 
 // ── EyeDropper API ───────────────────────────────────────────────────────────

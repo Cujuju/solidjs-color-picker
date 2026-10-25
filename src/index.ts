@@ -4,7 +4,7 @@
  * Public API exports:
  *  - Components: ColorSwatch, CompactColorPicker
  *  - Canvas sub-components: SaturationCanvas, HueSlider, ShadeSlider
- *  - Utilities: hexToHsv, hsvToHex, hsvToRgb, extractAlpha, extractBaseHex, applyAlpha, parseRgbInput, supportsEyeDropper
+ *  - Utilities: parseColor, rgbToHex, rgbToHsv, hexToHsv, hsvToHex, hsvToRgb, extractAlpha, extractBaseHex, applyAlpha, parseRgbInput, supportsEyeDropper
  *  - Tokens: DEFAULT_TOKENS, SWATCH_SIZE, mergeTokens
  *  - Palette: TV_PALETTE_ROW1, TV_PALETTE_MAIN
  *  - Types: all interfaces
@@ -21,6 +21,9 @@ export { ShadeSlider } from './canvas/ShadeSlider';
 
 // ── Color conversion utilities ───────────────────────────────────────────────
 export {
+  parseColor,
+  rgbToHex,
+  rgbToHsv,
   hexToHsv,
   hsvToHex,
   hsvToRgb,
@@ -46,6 +49,8 @@ export { TV_PALETTE_ROW1, TV_PALETTE_MAIN } from './palette';
 // ── Types ────────────────────────────────────────────────────────────────────
 export type {
   HsvColor,
+  RgbColor,
+  RgbaColor,
   PickerTokens,
   CtxMenuState,
   SaturationCanvasProps,
