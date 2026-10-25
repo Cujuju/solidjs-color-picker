@@ -134,6 +134,7 @@ import { CompactColorPicker } from '@cujuju/solidjs-color-picker';
 | `value` | `string` | **required** | Current color value. |
 | `onChange` | `(hex: string) => void` | **required** | Called on every color change (live preview). |
 | `onClose` | `() => void` | **required** | Called when the user clicks OK or the picker should close. |
+| `anchor` | `Element` | - | Element that opened the picker; pressing it is not an outside click, so it can toggle the picker closed. |
 | `savedColors` | `string[]` | `[]` | User-saved custom colors. |
 | `onSavedColorsChange` | `(colors: string[]) => void` | - | Called when saved colors change. |
 | `paletteRow1` | `string[]` | TV grayscale | Override grayscale row. |

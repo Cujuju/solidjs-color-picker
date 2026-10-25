@@ -12,7 +12,7 @@
 import { createSignal, createEffect, onMount, onCleanup, Show } from 'solid-js';
 import type { JSX } from 'solid-js';
 import type { HsvColor, PickerTokens, CtxMenuState, CompactColorPickerProps, FullPickerProps } from './types';
-import { hexToHsv, hsvToHex, hsvToRgb, extractAlpha, extractBaseHex, applyAlpha, parseRgbInput, supportsEyeDropper } from './utils';
+import { hexToHsv, hsvToHex, hsvToRgb, rgbToHex, extractAlpha, extractBaseHex, applyAlpha, parseRgbInput, supportsEyeDropper } from './utils';
 import { mergeTokens, PALETTE_SWATCH_SIZE, PALETTE_SWATCH_RADIUS } from './tokens';
 import { TV_PALETTE_ROW1, TV_PALETTE_MAIN } from './palette';
 import { SaturationCanvas } from './canvas/SaturationCanvas';
@@ -50,32 +50,41 @@ function FullPicker(props: FullPickerProps) {
   const SLIDER_H = SAT_H;
   const btnH = 26;
 
+  /** Show `next` in the hex and RGB fields. */
+  const showInputs = (next: HsvColor) => {
+    setHexInput(hsvToHex(next).toUpperCase());
+    const rgb = hsvToRgb(next);
+    setRgbInput(`${rgb.r}, ${rgb.g}, ${rgb.b}`);
+  };
+
   /** Update HSV state and emit preview */
   const emit = (next: HsvColor) => {
     setHsv(next);
-    const hex = hsvToHex(next);
-    setHexInput(hex.toUpperCase());
-    const rgb = hsvToRgb(next);
-    setRgbInput(`${rgb.r}, ${rgb.g}, ${rgb.b}`);
-    props.onPreview?.(hex);
+    showInputs(next);
+    props.onPreview?.(hsvToHex(next));
   };
 
-  /** Handle hex text input blur — parse and apply */
+  /** Hex parsed from outside the canvases. A grey has no hue; keep the current one so the hue slider stays put. */
+  const emitHex = (hex: string) => {
+    const next = hexToHsv(hex);
+    emit(next.s === 0 ? { ...next, h: hsv().h } : next);
+  };
+
+  /** Hex field blur: apply a valid value, else restore the current colour. */
   const handleHexBlur = () => {
     const v = hexInput().trim();
     const clean = v.startsWith('#') ? v : '#' + v;
-    if (/^#[0-9a-fA-F]{6}$/.test(clean)) emit(hexToHsv(clean));
+    if (/^#[0-9a-fA-F]{6}$/.test(clean)) emitHex(clean);
+    else showInputs(hsv());
   };
 
-  /** Handle RGB text input blur — parse and apply */
+  /** RGB field blur: apply a valid value, else restore the current colour. */
   const handleRgbBlur = () => {
     const parsed = parseRgbInput(rgbInput());
-    if (parsed) {
-      const { r, g, b } = parsed;
-      const hex = `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-      emit(hexToHsv(hex));
-      setRgbInput(`${r}, ${g}, ${b}`);
-    }
+    if (!parsed) return showInputs(hsv());
+    const { r, g, b } = parsed;
+    emitHex(rgbToHex(r, g, b));
+    setRgbInput(`${r}, ${g}, ${b}`);
   };
 
   /** EyeDropper API — pick color from screen */
@@ -83,7 +92,7 @@ function FullPicker(props: FullPickerProps) {
     if (!window.EyeDropper) return;
     try {
       const result = await new window.EyeDropper().open();
-      emit(hexToHsv(result.sRGBHex));
+      emitHex(result.sRGBHex);
     } catch { /* user cancelled */ }
   };
 
@@ -230,8 +239,11 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
   // Snapshot on open for Cancel revert
   const original = props.value;
   let containerEl: HTMLDivElement | undefined;
-  // Snapshot of current color at the moment FullPicker is opened
-  let fullPickerInitial = props.value;
+  /** The value last sent through onChange. */
+  let lastValue = props.value;
+  // Snapshot of the color and value at the moment FullPicker is opened; its Cancel restores them.
+  let fullPickerInitial = current();
+  let valueBeforeFull = lastValue;
 
   // NOTE (L9.8): the picker no longer auto-adds the opened color to
   // savedColors on mount. Pre-L9.8 every reopen of a drawing with a
@@ -245,7 +257,10 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
   // Close on outside click
   const handleOutsideClick = (e: MouseEvent) => {
     if (ctxMenu()) return; // don't close while context menu is open
-    if (containerEl && !containerEl.contains(e.target as Node)) props.onClose();
+    const target = e.target as Node;
+    // A press on the anchor is its own toggle; closing here would let its click reopen the picker.
+    if (containerEl?.contains(target) || props.anchor?.contains(target)) return;
+    props.onClose();
   };
   document.addEventListener('mousedown', handleOutsideClick, true);
   onCleanup(() => document.removeEventListener('mousedown', handleOutsideClick, true));
@@ -259,7 +274,24 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
 
   const applyColor = (hex: string, a: number) => {
     setCurrent(hex);
-    props.onChange(applyAlpha(hex, a));
+    lastValue = applyAlpha(hex, a);
+    props.onChange(lastValue);
+  };
+
+  const openFull = () => {
+    fullPickerInitial = current();
+    valueBeforeFull = lastValue;
+    setShowFull(true);
+  };
+
+  /** Full-picker Cancel (button or Escape): back to the colour chosen before "+", not the one the picker opened with. */
+  const cancelFull = () => {
+    setCurrent(fullPickerInitial);
+    if (lastValue !== valueBeforeFull) {
+      lastValue = valueBeforeFull;
+      props.onChange(lastValue);
+    }
+    setShowFull(false);
   };
 
   const selectColor = (hex: string) => applyColor(hex, alpha());
@@ -312,11 +344,11 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
 
   return (
     <Show when={!showFull()} fallback={
-      <div ref={containerEl} role="dialog" aria-label="Custom colour" tabindex="-1" onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); props.onChange(original); setShowFull(false); } }}>
+      <div ref={containerEl} role="dialog" aria-label="Custom colour" tabindex="-1" onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); cancelFull(); } }}>
         <FullPicker
           initial={fullPickerInitial}
           onAdd={handleAddColor}
-          onCancel={() => { props.onChange(original); setShowFull(false); }}
+          onCancel={cancelFull}
           onPreview={(hex) => applyColor(hex, alpha())}
           tokens={props.tokens}
         />
@@ -368,7 +400,7 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
           ))}
           <button
             type="button"
-            onClick={() => { fullPickerInitial = current(); setShowFull(true); }}
+            onClick={openFull}
             title="Add custom color"
             aria-label="Add custom color"
             style={{

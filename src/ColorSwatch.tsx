@@ -217,6 +217,7 @@ export function ColorSwatch(props: ColorSwatchProps) {
               value={props.value}
               onChange={props.onChange}
               onClose={close}
+              anchor={openerEl}
               savedColors={props.savedColors}
               onSavedColorsChange={props.onSavedColorsChange}
               paletteRow1={props.paletteRow1}

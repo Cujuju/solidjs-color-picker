@@ -91,6 +91,8 @@ export interface CompactColorPickerProps {
   onChange: (hex: string) => void;
   /** Callback to close the picker */
   onClose: () => void;
+  /** Element that opened the picker; a press on it is not an outside click, so it can toggle the picker closed. */
+  anchor?: Element;
   /** User-saved custom colors array */
   savedColors?: string[];
   /** Callback when saved colors change (add/delete) */
