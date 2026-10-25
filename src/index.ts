@@ -1,14 +1,4 @@
-/**
- * cujuju-solidjs-color-picker — TradingView-style color picker for SolidJS.
- *
- * Public API exports:
- *  - Components: ColorSwatch, CompactColorPicker
- *  - Canvas sub-components: SaturationCanvas, HueSlider, ShadeSlider
- *  - Utilities: parseColor, rgbToHex, rgbToHsv, hexToHsv, hsvToHex, hsvToRgb, extractAlpha, extractBaseHex, applyAlpha, parseRgbInput, supportsEyeDropper
- *  - Tokens: DEFAULT_TOKENS, SWATCH_SIZE, mergeTokens
- *  - Palette: TV_PALETTE_ROW1, TV_PALETTE_MAIN
- *  - Types: all interfaces
- */
+/** Public API of @cujuju/solidjs-color-picker. */
 
 // ── Components ───────────────────────────────────────────────────────────────
 export { ColorSwatch } from './ColorSwatch';

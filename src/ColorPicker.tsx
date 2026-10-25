@@ -1,7 +1,4 @@
-/**
- * CompactColorPicker — TradingView-style palette grid, saved colors, opacity, OK/Cancel.
- * "+" swaps in the FullPicker. Saved colors are props (savedColors / onSavedColorsChange); the consumer persists them.
- */
+/** CompactColorPicker — palette grid, saved colors, opacity, Ok/Cancel. "+" opens FullPicker. The consumer persists saved colors. */
 
 import { createSignal, createEffect, onCleanup, Show, For } from 'solid-js';
 import type { JSX } from 'solid-js';
@@ -19,16 +16,16 @@ interface Selection {
   alpha: number;
 }
 
-/** A state Cancel returns to: the selection, and the exact value string the host held then. */
+/** A state Cancel restores: the selection and the value string emitted then. */
 interface Checkpoint {
   selection: Selection;
   value: string;
 }
 
-/** Shown when `value` doesn't parse; nothing is emitted until the user picks, and Cancel restores the original string. */
+/** Selection shown when `value` doesn't parse. */
 const UNREADABLE_START: Selection = { hex: '#000000', alpha: 100 };
 const OPAQUE = 100;
-/** Palette grid columns; the panel is exactly this many swatches wide. */
+/** Palette grid columns; sets the panel width. */
 const PALETTE_COLUMNS = 10;
 /** Gap (px) between swatches. */
 const SWATCH_GAP = 3;
@@ -51,8 +48,8 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
   const [ctxMenu, setCtxMenu] = createSignal<CtxMenuState | null>(null);
   let containerEl: HTMLDivElement | undefined;
 
-  // ── Selection: every change emits through `select`; both Cancels go through `restore` ──
-  /** The value last sent through onChange (or the opening value). */
+  // ── Selection: changes emit via `select`; Cancels restore via `restore` ──
+  /** Last value emitted; initially the opening value. */
   let lastValue = props.value;
   const select = (next: Selection) => {
     setSelection(next);
@@ -70,9 +67,9 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
   let beforeFull = opened;
 
   const openFull = () => { beforeFull = checkpoint(); setShowFull(true); };
-  /** Back to the colour chosen before "+", still open. */
+  /** Restore the pre-"+" state; stay open. */
   const cancelFull = () => { restore(beforeFull); setShowFull(false); };
-  /** Back to the colour the picker opened with, then close. */
+  /** Restore the opening state; close. */
   const cancel = () => { restore(opened); props.onClose(); };
 
   const selectHex = (color: string) => select({ ...selection(), hex: extractBaseHex(color) });
@@ -100,25 +97,25 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
     live: true,
   });
 
-  // Saved colors accumulate only via FullPicker "Add". Auto-adding the opened colour (pre-L9.8) grew the list per reopen.
+  // Saved colors change only via FullPicker "Add" and the context-menu Delete.
 
   const handleOutsideClick = (e: MouseEvent) => {
     const target = e.target as Node;
-    // A press on the anchor is its own toggle; closing here would let its click reopen the picker.
+    // Presses on the anchor are left to its own toggle.
     if (containerEl?.contains(target) || props.anchor?.contains(target)) return;
     props.onClose();
   };
   document.addEventListener('mousedown', handleOutsideClick, true);
   onCleanup(() => document.removeEventListener('mousedown', handleOutsideClick, true));
 
-  // Focus the dialog on open and on each view swap. A frame later: ColorSwatch shows the popover after mount.
+  // Focus the dialog on open and each view swap, a frame later: the popover is hidden at mount.
   createEffect(() => {
     showFull();
     requestAnimationFrame(() => containerEl?.focus({ preventScroll: true }));
   });
 
   const P = mergeTokens(props.tokens);
-  // The shared token, not a local literal: an outside caller sizes its own swatch from it (see tokens.ts).
+  // Shared with callers that size their own swatches (see tokens.ts).
   const SWATCH = PALETTE_SWATCH_SIZE;
   const PANEL_W = PALETTE_COLUMNS * SWATCH + (PALETTE_COLUMNS - 1) * SWATCH_GAP + P.pad * 2;
   const divider = () => <div style={{ "border-top": `1px solid ${P.border}`, "margin-bottom": `${P.gap}px` }} />;
@@ -196,7 +193,7 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
             >+</button>
           </div>
 
-          {/* Context menu for saved-colour delete; its backdrop is inside the dialog, so it isn't an outside click */}
+          {/* Saved-colour context menu; its backdrop is inside the dialog */}
           <Show when={ctxMenu()}>
             {(menu) => (
               <div>
@@ -226,7 +223,7 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
 
           {divider()}
 
-          {/* Opacity row: hidden when the host takes opaque colours only */}
+          {/* Opacity row; hidden when `alpha` is false */}
           <Show when={props.alpha !== false}>
             <div style={{ display: 'flex', "align-items": 'center', gap: `${P.gapSm}px`, "margin-bottom": `${P.gap}px` }}>
               <span style={{ "font-size": `${P.fontSizeSm}px`, color: P.textDim, "flex-shrink": '0' }}>Opacity</span>

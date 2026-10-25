@@ -1,7 +1,4 @@
-/**
- * Press-and-drag picking for the canvas controls. Bind to the control's container, not its canvas:
- * the knob overlays the canvas.
- */
+/** Press-and-drag picking for the canvas controls, bound to the control's container so knob presses count. */
 
 import type { JSX } from 'solid-js';
 

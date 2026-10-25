@@ -1,9 +1,4 @@
-/**
- * HueSlider — canvas-based horizontal rainbow hue slider.
- *
- * Draws a horizontal rainbow gradient (0-360 degrees). Click or drag
- * to pick a hue value. A vertical pill indicator tracks the current position.
- */
+/** HueSlider — horizontal rainbow hue slider (0-360); click or drag to pick. */
 
 import { onMount } from 'solid-js';
 import { pointerDrag, DRAG_SURFACE_STYLE } from './pointerDrag';

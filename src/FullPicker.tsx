@@ -26,17 +26,17 @@ export function FullPicker(props: FullPickerProps) {
   const GAP = P.gap;
   const SAT_W = FULL_W - P.pad * 2 - SLIDER_TRACK - GAP;
 
-  /** Every colour change: canvases, fields and eyedropper alike. */
+  /** Set the colour and preview it. */
   const emit = (next: HsvColor) => {
     setHsv(next);
     props.onPreview?.(hsvToHex(next));
   };
-  /** A colour arriving as RGB carries no hue for a grey; keep the controls where they are. */
+  /** Set from RGB, keeping the hue and saturation a grey or black leaves undetermined. */
   const emitRgb = (rgb: RgbColor) => emit(carryHsv(rgbToHsv(rgb), hsv()));
 
   const hexField = createDraftField({
     format: () => hsvToHex(hsv()).toUpperCase(),
-    // Opaque hex only: an alpha digit pair here would be dropped silently.
+    // Opaque hex only; an alpha pair would be dropped.
     parse: (text) => {
       const c = parseColor(`#${text.trim().replace(/^#/, '')}`);
       return c && c.a === 1 ? c : null;

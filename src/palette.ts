@@ -1,9 +1,4 @@
-/**
- * TradingView-style color palette data.
- *
- * These are the default palettes used by CompactColorPicker. Override by passing
- * `paletteRow1` and/or `paletteMain` props.
- */
+/** Default palettes for CompactColorPicker; override via `paletteRow1` / `paletteMain`. */
 
 /** 10 grayscale swatches (top row) */
 export const TV_PALETTE_ROW1: string[] = [

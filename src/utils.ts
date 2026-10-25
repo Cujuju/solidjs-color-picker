@@ -1,8 +1,4 @@
-/**
- * Color conversion utilities — parsing, HSV/RGB/hex conversion, alpha helpers.
- *
- * Pure, dependency-free, usable without any picker component. Every string input goes through `parseColor`.
- */
+/** Color parsing and conversion. Pure; every string input goes through `parseColor`. */
 
 import type { HsvColor, RgbColor, RgbaColor } from './types';
 
@@ -35,11 +31,7 @@ export function parseColor(color: string): RgbaColor | null {
   return { r, g, b, a: clamp(a, 0, 1) };
 }
 
-/**
- * Parse "r, g, b" text input into RGB values.
- * Accepts comma-separated or space-separated values.
- * @returns RGB object or null if parsing fails
- */
+/** Parse "r, g, b" (comma or space separated, integers 0-255); null otherwise. */
 export function parseRgbInput(input: string): RgbColor | null {
   const parts = input.trim().split(/[\s,]+/).map(Number);
   if (parts.length === 3 && parts.every((n) => Number.isInteger(n) && n >= 0 && n <= CHANNEL_MAX)) {

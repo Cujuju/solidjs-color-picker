@@ -1,7 +1,4 @@
-/**
- * A text field over a value it does not own. It shows the value's own text until the user types; the draft is dropped
- * on commit, valid or not.
- */
+/** A text field over a value it doesn't own: shows the value's text unless a draft is pending; commit drops the draft. */
 
 import { createSignal } from 'solid-js';
 

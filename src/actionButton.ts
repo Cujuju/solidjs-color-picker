@@ -6,10 +6,7 @@ import type { PickerTokens } from './types';
 /** Height (px) of action buttons, and of the controls that share their row. */
 export const ACTION_BUTTON_H = 26;
 
-/**
- * Text layout is stated, not left to the user agent: hosts commonly reset `button { text-align: inherit; font: inherit }`.
- * `primary` fills with the accent.
- */
+/** Action button style; `primary` fills with the accent. Text alignment, font family and line height are set explicitly. */
 export function actionButtonStyle(P: PickerTokens, primary: boolean): JSX.CSSProperties {
   return {
     flex: '1', height: `${ACTION_BUTTON_H}px`, padding: '0', cursor: 'pointer',

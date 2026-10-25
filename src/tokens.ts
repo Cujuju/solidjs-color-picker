@@ -1,9 +1,4 @@
-/**
- * Design tokens for the color picker.
- *
- * These defaults produce a dark-themed picker matching TradingView's style.
- * Override any token by passing a partial `tokens` prop to CompactColorPicker or ColorSwatch.
- */
+/** Default design tokens; override any via the `tokens` prop. */
 
 import type { PickerTokens } from './types';
 
@@ -29,16 +24,7 @@ export const DEFAULT_TOKENS: PickerTokens = {
 /** Default swatch size used by ColorSwatch (pixels) */
 export const SWATCH_SIZE = 26;
 
-/**
- * Edge length (px) of ONE preset cell in the picker's palette grid, and the
- * corner radius those cells are drawn with.
- *
- * Exported because callers outside this package render swatches that should read
- * as the SAME control as the palette the picker opens — a standalone swatch at a
- * different size/radius looks like a different widget. `PALETTE_SWATCH_SIZE`
- * happens to produce `PALETTE_SWATCH_RADIUS` through ColorSwatch's own
- * size-proportional radius formula, so passing it as `size` matches on both axes.
- */
+/** Palette cell size and corner radius (px). PALETTE_SWATCH_SIZE as ColorSwatch `size` yields PALETTE_SWATCH_RADIUS corners. */
 export const PALETTE_SWATCH_SIZE = 18;
 export const PALETTE_SWATCH_RADIUS = 3;
 

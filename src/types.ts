@@ -43,7 +43,7 @@ export interface PickerTokens {
   textDim: string;
   fontSizeSm: number;
   accent: string;
-  /** Label colour on accent-filled buttons (Ok, Add); pick one that contrasts with `accent`. */
+  /** Label colour on accent-filled buttons (Ok, Add). */
   textOnAccent: string;
 }
 
@@ -98,13 +98,13 @@ export interface FullPickerProps {
 
 /** Props for the CompactColorPicker (main TV-palette picker panel) */
 export interface CompactColorPickerProps {
-  /** Current color value (hex, rgba, or 8-digit hex with alpha) */
+  /** Current color, in any `parseColor` format */
   value: string;
   /** Callback when color changes */
   onChange: (hex: string) => void;
   /** Callback to close the picker */
   onClose: () => void;
-  /** Element that opened the picker; a press on it is not an outside click, so it can toggle the picker closed. */
+  /** Element that opened the picker; presses on it are not outside clicks. */
   anchor?: Element;
   /** User-saved custom colors array */
   savedColors?: string[];
@@ -116,7 +116,7 @@ export interface CompactColorPickerProps {
   paletteMain?: string[];
   /** Override design tokens */
   tokens?: Partial<PickerTokens>;
-  /** Show the opacity control (default true); false for hosts that take opaque colours only. */
+  /** Show the opacity control (default true). */
   alpha?: boolean;
 }
 
@@ -144,6 +144,6 @@ export interface ColorSwatchProps {
   paletteMain?: string[];
   /** Override design tokens */
   tokens?: Partial<PickerTokens>;
-  /** Show the opacity control (default true); false for hosts that take opaque colours only. */
+  /** Show the opacity control (default true). */
   alpha?: boolean;
 }

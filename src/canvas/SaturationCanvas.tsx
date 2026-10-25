@@ -1,10 +1,4 @@
-/**
- * SaturationCanvas — canvas-based HSV saturation/brightness square.
- *
- * Draws a 2D saturation (x-axis) / brightness (y-axis) gradient for a given hue.
- * Click or drag to pick saturation and value. The crosshair pointer tracks
- * the current position.
- */
+/** SaturationCanvas — saturation (x) by brightness (y) square for one hue; click or drag to pick. A crosshair marks the value. */
 
 import { createEffect } from 'solid-js';
 import { pointerDrag, DRAG_SURFACE_STYLE } from './pointerDrag';
@@ -49,7 +43,7 @@ export function SaturationCanvas(props: SaturationCanvasProps) {
   });
 
 
-  /** Convert mouse position to saturation/value and emit */
+  /** Convert pointer position to saturation/value and emit */
   const pickFromEvent = (e: MouseEvent) => {
     if (!canvasEl) return;
     const rect = canvasEl.getBoundingClientRect();

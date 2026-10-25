@@ -1,11 +1,4 @@
-/**
- * Popover positioning geometry.
- *
- * Pure arithmetic, deliberately free of any DOM access: the component measures
- * the real elements and hands the numbers here. That split is what makes the
- * placement rules testable without a browser, and it is why the sizes are
- * PARAMETERS rather than the hard-coded 260x320 constants this replaced.
- */
+/** Popover placement. Pure arithmetic; the caller measures. */
 
 /** Minimum gap kept between the popover and every viewport edge (pixels). */
 export const VIEWPORT_MARGIN_PX = 8;
@@ -39,18 +32,8 @@ export interface PopoverPosition {
 }
 
 /**
- * Place `popover` against `anchor` without letting any edge leave the viewport.
- *
- * Vertical rule: prefer below the anchor; flip above when below would overflow
- * the bottom; when neither side fits (viewport shorter than the popover), stop
- * anchoring and clamp so the popover's top edge stays reachable — a popover
- * pinned off the top of the screen is unusable, one pinned off the bottom
- * merely loses its footer.
- *
- * Horizontal rule: align to the anchor's left edge, pull back when that would
- * overflow the right edge, then clamp the left edge. Both clamps are required:
- * a popover wider than the viewport overflows on whichever side is left
- * unclamped, and the right-edge pull-back can itself push `left` negative.
+ * Place `popover` against `anchor` within the viewport: below, else above, else top-clamped; left-aligned, pulled in
+ * from the right, then clamped left.
  */
 export function clampPopoverPosition(
   anchor: AnchorRect,

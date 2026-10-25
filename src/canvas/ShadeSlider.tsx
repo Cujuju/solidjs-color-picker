@@ -1,10 +1,4 @@
-/**
- * ShadeSlider — canvas-based vertical brightness slider.
- *
- * Draws a vertical gradient from the fully bright version of the current
- * hue+saturation (top) to black (bottom). Click or drag to pick brightness.
- * A horizontal pill indicator tracks the current position.
- */
+/** ShadeSlider — vertical brightness slider, current hue and saturation (top) to black (bottom); click or drag to pick. */
 
 import { createEffect } from 'solid-js';
 import { pointerDrag, DRAG_SURFACE_STYLE } from './pointerDrag';
