@@ -512,11 +512,9 @@ All three canvas controls (SaturationCanvas, HueSlider, ShadeSlider) follow the 
 
 1. **Render:** On mount (and when relevant props change), the component draws a gradient on an HTML `<canvas>` element using `CanvasRenderingContext2D`.
 
-2. **Interaction:** `mousedown` starts tracking. The handler calculates the mouse position relative to the canvas bounds, converts to the appropriate color-space value, and calls `onChange`. `mousemove` (on `document`) continues tracking while dragging. `mouseup` stops.
+2. **Interaction:** a primary-button `pointerdown` on the control's container (canvas and indicator alike) captures the pointer. The handler calculates the pointer position relative to the canvas bounds, converts to the appropriate color-space value, and calls `onChange`; `pointermove` continues while captured, and release ends it. Mouse, pen and touch all work, and no global listeners are added.
 
 3. **Pointer indicator:** A CSS-positioned `<div>` overlay shows the current position (crosshair circle for saturation, vertical/horizontal pill for sliders).
-
-4. **Cleanup:** All global event listeners (`mousemove`, `mouseup`) are removed in `onCleanup` to prevent memory leaks.
 
 ### SaturationCanvas internals
 

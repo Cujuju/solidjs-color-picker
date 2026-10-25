@@ -6,13 +6,13 @@
  * A horizontal pill indicator tracks the current position.
  */
 
-import { createEffect, onMount, onCleanup } from 'solid-js';
+import { createEffect } from 'solid-js';
+import { pointerDrag, DRAG_SURFACE_STYLE } from './pointerDrag';
 import type { ShadeSliderProps } from '../types';
 import { hsvToHex } from '../utils';
 
 export function ShadeSlider(props: ShadeSliderProps) {
   let canvasEl: HTMLCanvasElement | undefined;
-  let dragging = false;
 
   const draw = () => {
     if (!canvasEl) return;
@@ -36,7 +36,6 @@ export function ShadeSlider(props: ShadeSliderProps) {
     draw();
   });
 
-  onMount(draw);
 
   const pickFromEvent = (e: MouseEvent) => {
     if (!canvasEl) return;
@@ -46,39 +45,17 @@ export function ShadeSlider(props: ShadeSliderProps) {
     props.onChange(100 - (y / rect.height) * 100);
   };
 
-  const handleMouseDown = (e: MouseEvent) => {
-    e.preventDefault();
-    dragging = true;
-    pickFromEvent(e);
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-  };
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (dragging) pickFromEvent(e);
-  };
-
-  const handleMouseUp = () => {
-    dragging = false;
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-  };
-
-  onCleanup(() => {
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-  });
+  const drag = pointerDrag(pickFromEvent);
 
   // Pointer position: vertical pill
   const pointerTop = () => `${100 - props.value}%`;
 
   return (
-    <div style={{ position: 'relative', width: `${props.width}px`, height: `${props.height}px`, "flex-shrink": '0', "border-radius": '6px', overflow: 'hidden', cursor: 'pointer' }}>
+    <div onPointerDown={drag.onPointerDown} onPointerMove={drag.onPointerMove} style={{ ...DRAG_SURFACE_STYLE, position: 'relative', width: `${props.width}px`, height: `${props.height}px`, "flex-shrink": '0', "border-radius": '6px', overflow: 'hidden', cursor: 'pointer' }}>
       <canvas
         ref={canvasEl}
         width={props.width}
         height={props.height}
-        onMouseDown={handleMouseDown}
         style={{ display: 'block', width: '100%', height: '100%' }}
       />
       {/* Vertical pill pointer */}
