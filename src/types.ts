@@ -113,8 +113,10 @@ export interface ColorSwatchProps {
   value: string;
   /** Callback when color changes */
   onChange: (v: string) => void;
-  /** Swatch size in pixels (default: 26) */
+  /** Swatch size in pixels (default: 26); the height only when `fill` is set */
   size?: number;
+  /** Stretch the swatch to its container's width */
+  fill?: boolean;
   /** Hide the border around the swatch */
   noBorder?: boolean;
   /** User-saved custom colors array */

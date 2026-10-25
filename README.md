@@ -112,7 +112,8 @@ import { ColorSwatch } from '@cujuju/solidjs-color-picker';
 |------|------|---------|-------------|
 | `value` | `string` | **required** | Current color value. Accepts hex (`#rrggbb`), 8-digit hex (`#rrggbbaa`), or `rgba()` strings. |
 | `onChange` | `(v: string) => void` | **required** | Called when the user picks a new color. Returns hex or 8-digit hex (when alpha < 100). |
-| `size` | `number` | `26` | Swatch button size in pixels. |
+| `size` | `number` | `26` | Swatch button size in pixels; only the height when `fill` is set. |
+| `fill` | `boolean` | `false` | Stretch the swatch to its container's width. |
 | `noBorder` | `boolean` | `false` | Hide the border around the swatch button. |
 | `savedColors` | `string[]` | `[]` | Array of user-saved custom color hex strings. |
 | `onSavedColorsChange` | `(colors: string[]) => void` | - | Called when the saved colors list changes (add or delete). |

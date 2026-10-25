@@ -153,7 +153,7 @@ export function ColorSwatch(props: ColorSwatchProps) {
   };
 
   return (
-    <div ref={swatchEl} style={{ display: 'inline-flex', "align-items": 'center' }}>
+    <div ref={swatchEl} style={{ display: props.fill ? 'flex' : 'inline-flex', "align-items": 'center', width: props.fill ? '100%' : undefined }}>
       <button
         type="button"
         ref={openerEl}
@@ -163,7 +163,7 @@ export function ColorSwatch(props: ColorSwatchProps) {
         aria-haspopup="dialog"
         aria-expanded={open()}
         style={{
-          width: `${size()}px`, height: `${size()}px`, padding: '0', display: 'block',
+          width: props.fill ? '100%' : `${size()}px`, height: `${size()}px`, padding: '0', display: 'block',
           "border-radius": `${Math.round(size() * SWATCH_RADIUS_RATIO)}px`,
           background: props.value,
           border: props.noBorder ? 'none' : `1px solid ${tokens().border}`,
