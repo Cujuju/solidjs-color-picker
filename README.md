@@ -220,11 +220,12 @@ hsvToRgb({ h: 120, s: 100, v: 100 });
 
 #### `extractAlpha(color: string): number`
 
-Extract the alpha channel (0-100) from a color string. Supports `rgba()`, 8-digit hex, and plain hex (returns 100).
+Extract the alpha channel (0-100) from a color string. Supports `rgba()` (number or percentage alpha), 8-digit hex, and plain hex (returns 100).
 
 ```ts
 extractAlpha('#ff6b3580');  // => 50
 extractAlpha('rgba(255, 107, 53, 0.5)');  // => 50
+extractAlpha('rgb(255 107 53 / 50%)');  // => 50
 extractAlpha('#ff6b35');  // => 100
 ```
 
@@ -235,6 +236,7 @@ Strip alpha from any color string and return the base 7-character hex.
 ```ts
 extractBaseHex('#ff6b3580');  // => "#ff6b35"
 extractBaseHex('rgba(255, 107, 53, 0.5)');  // => "#ff6b35"
+extractBaseHex('#f63');  // => "#ff6633"
 ```
 
 #### `applyAlpha(hex: string, alpha: number): string`

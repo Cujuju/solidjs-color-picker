@@ -68,6 +68,11 @@ export function hsvToRgb(hsv: HsvColor): { r: number; g: number; b: number } {
   };
 }
 
+/** Convert 0-255 channels to a 6-digit hex string like "#ff0000". */
+export function rgbToHex(r: number, g: number, b: number): string {
+  return `#${[r, g, b].map((n) => n.toString(16).padStart(2, '0')).join('')}`;
+}
+
 // ── Alpha helpers ────────────────────────────────────────────────────────────
 
 /**
@@ -76,11 +81,11 @@ export function hsvToRgb(hsv: HsvColor): { r: number; g: number; b: number } {
  */
 export function extractAlpha(color: string): number {
   const trimmed = color.trim();
-  // rgba(r, g, b, a) or rgba(r g b / a)
-  const rgbaMatch = trimmed.match(/rgba?\(\s*[\d.]+[\s,]+[\d.]+[\s,]+[\d.]+[\s,/]+\s*([\d.]+)\s*\)/i);
+  // rgba(r, g, b, a) or rgba(r g b / a); a is a 0-1 number or a percentage
+  const rgbaMatch = trimmed.match(/rgba?\(\s*[\d.]+[\s,]+[\d.]+[\s,]+[\d.]+[\s,/]+\s*([\d.]+)(%?)\s*\)/i);
   if (rgbaMatch) {
     const a = parseFloat(rgbaMatch[1]);
-    return Math.round((a > 1 ? a : a * 100));
+    return Math.round(rgbaMatch[2] || a > 1 ? a : a * 100);
   }
   // 8-digit hex (#rrggbbaa)
   if (/^#[0-9a-fA-F]{8}$/.test(trimmed)) {
@@ -99,11 +104,11 @@ export function extractBaseHex(color: string): string {
   // rgba(r, g, b, a)
   const rgbaMatch = trimmed.match(/rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i);
   if (rgbaMatch) {
-    const r = Math.round(parseFloat(rgbaMatch[1]));
-    const g = Math.round(parseFloat(rgbaMatch[2]));
-    const b = Math.round(parseFloat(rgbaMatch[3]));
-    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+    const [r, g, b] = rgbaMatch.slice(1, 4).map((c) => Math.round(parseFloat(c)));
+    return rgbToHex(r, g, b);
   }
+  // 3-digit hex -> expand each digit
+  if (/^#[0-9a-fA-F]{3}$/.test(trimmed)) return `#${[...trimmed.slice(1)].map((c) => c + c).join('')}`;
   // 8-digit hex -> strip alpha
   if (/^#[0-9a-fA-F]{8}$/.test(trimmed)) return trimmed.slice(0, 7);
   // Already 6-digit hex or other
