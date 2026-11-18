@@ -1,9 +1,9 @@
 /**
- * ColorSwatch — swatch button that opens CompactColorPicker in a Portal on document.body, in the popover top layer
- * where supported. Placement is measured after mount and re-clamped on resize and scroll.
+ * ColorSwatch — swatch button (or consumer `trigger` content) that opens CompactColorPicker in a Portal on
+ * document.body, in the popover top layer where supported. Placement is measured after mount and re-clamped on resize and scroll.
  */
 
-import { createSignal, Show, onCleanup } from 'solid-js';
+import { createSignal, Show, onCleanup, children } from 'solid-js';
 import { Portal } from 'solid-js/web';
 import type { ColorSwatchProps } from './types';
 import { SWATCH_SIZE, mergeTokens } from './tokens';
@@ -14,13 +14,20 @@ import { CompactColorPicker } from './ColorPicker';
 const SWATCH_RADIUS_RATIO = 4 / 28;
 
 export function ColorSwatch(props: ColorSwatchProps) {
-  const [open, setOpen] = createSignal(false);
+  const [open, setOpenSignal] = createSignal(false);
+  const setOpen = (next: boolean) => {
+    if (next === open()) return;
+    setOpenSignal(next);
+    props.onOpenChange?.(next);
+  };
   /** Measured position; null until measured. */
   const [pickerPos, setPickerPos] = createSignal<PopoverPosition | null>(null);
   let swatchEl: HTMLDivElement | undefined;
   let portalEl: HTMLDivElement | undefined;
 
   const size = () => props.size ?? SWATCH_SIZE;
+  // Resolved once: reading `props.trigger` again would build its nodes again.
+  const trigger = children(() => props.trigger);
   const tokens = () => mergeTokens(props.tokens);
 
   /** Place the popover against the swatch at its rendered size, inside the viewport. */
@@ -88,18 +95,20 @@ export function ColorSwatch(props: ColorSwatchProps) {
         type="button"
         ref={openerEl}
         onClick={handleOpen}
-        title={props.value}
+        class={props.triggerClass}
+        title={trigger() ? props.label : props.value}
         aria-label={props.label ?? `Colour ${props.value}`}
         aria-haspopup="dialog"
         aria-expanded={open()}
-        style={{
+        // A `trigger` button takes its look from `triggerClass`; inline styles would override the class.
+        style={trigger() ? undefined : {
           width: props.fill ? '100%' : `${size()}px`, height: `${size()}px`, padding: '0', display: 'block',
           "border-radius": `${Math.round(size() * SWATCH_RADIUS_RATIO)}px`,
           background: props.value,
           border: props.noBorder ? 'none' : `1px solid ${tokens().border}`,
           cursor: 'pointer', "flex-shrink": '0',
         }}
-      />
+      >{trigger()}</button>
       <Show when={open()}>
         <Portal>
           {/* data-color-picker-popup: consumer outside-click checks exclude `closest('[data-color-picker-popup]')`. */}
@@ -136,7 +145,9 @@ export function ColorSwatch(props: ColorSwatchProps) {
               paletteMain={props.paletteMain}
               tokens={props.tokens}
               alpha={props.alpha}
-            />
+              colors={props.colors}
+              onCancel={props.onCancel}
+            >{props.children}</CompactColorPicker>
           </div>
         </Portal>
       </Show>

@@ -118,6 +118,12 @@ export interface CompactColorPickerProps {
   tokens?: Partial<PickerTokens>;
   /** Show the opacity control (default true). */
   alpha?: boolean;
+  /** Show the palette, saved colours and opacity (default true). False leaves `children` and the action row. */
+  colors?: boolean;
+  /** Called after Cancel (button or Escape) restores the opening colour; restore the consumer's own fields here. */
+  onCancel?: () => void;
+  /** Extra sections, rendered after the opacity row, each above a divider. */
+  children?: JSX.Element;
 }
 
 /** Props for the ColorSwatch click-to-open wrapper */
@@ -146,4 +152,16 @@ export interface ColorSwatchProps {
   tokens?: Partial<PickerTokens>;
   /** Show the opacity control (default true). */
   alpha?: boolean;
+  /** Show the palette, saved colours and opacity (default true). */
+  colors?: boolean;
+  /** Called on each open and close; on open, snapshot fields `onCancel` restores. */
+  onOpenChange?: (open: boolean) => void;
+  /** Called after Cancel restores the opening colour. */
+  onCancel?: () => void;
+  /** Replaces the colour fill: rendered inside an unstyled opener button sized by its content. */
+  trigger?: JSX.Element;
+  /** Class for the opener button; with `trigger`, it owns the button's look. */
+  triggerClass?: string;
+  /** Extra picker sections, rendered after the opacity row. */
+  children?: JSX.Element;
 }
