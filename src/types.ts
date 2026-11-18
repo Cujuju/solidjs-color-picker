@@ -154,8 +154,8 @@ export interface ColorSwatchProps {
   alpha?: boolean;
   /** Show the palette, saved colours and opacity (default true). */
   colors?: boolean;
-  /** Called each time the picker opens; snapshot fields `onCancel` restores. */
-  onOpen?: () => void;
+  /** Called on each open and close; on open, snapshot fields `onCancel` restores. */
+  onOpenChange?: (open: boolean) => void;
   /** Called after Cancel restores the opening colour. */
   onCancel?: () => void;
   /** Replaces the colour fill: rendered inside an unstyled opener button sized by its content. */

@@ -14,7 +14,12 @@ import { CompactColorPicker } from './ColorPicker';
 const SWATCH_RADIUS_RATIO = 4 / 28;
 
 export function ColorSwatch(props: ColorSwatchProps) {
-  const [open, setOpen] = createSignal(false);
+  const [open, setOpenSignal] = createSignal(false);
+  const setOpen = (next: boolean) => {
+    if (next === open()) return;
+    setOpenSignal(next);
+    props.onOpenChange?.(next);
+  };
   /** Measured position; null until measured. */
   const [pickerPos, setPickerPos] = createSignal<PopoverPosition | null>(null);
   let swatchEl: HTMLDivElement | undefined;
@@ -46,7 +51,7 @@ export function ColorSwatch(props: ColorSwatchProps) {
   /** Toggle the picker; opening clears the old position so it is re-measured. */
   const handleOpen = () => {
     const willOpen = !open();
-    if (willOpen) { setPickerPos(null); props.onOpen?.(); }
+    if (willOpen) setPickerPos(null);
     setOpen(willOpen);
   };
 

@@ -125,7 +125,7 @@ import { ColorSwatch } from '@cujuju/solidjs-color-picker';
 | `trigger` | `JSX.Element` | - | Replaces the color fill: rendered inside an unstyled opener button sized by its content. `label` becomes its tooltip. |
 | `triggerClass` | `string` | - | Class for the opener button; with `trigger`, it owns the button's whole look. |
 | `children` | `JSX.Element` | - | Extra picker sections, rendered after the opacity row, above Cancel/Ok. |
-| `onOpen` | `() => void` | - | Called each time the picker opens; snapshot here what `onCancel` restores. |
+| `onOpenChange` | `(open: boolean) => void` | - | Called on each open and close; on open, snapshot what `onCancel` restores. |
 | `onCancel` | `() => void` | - | Called after Cancel (button or Escape) restores the opening color. |
 
 #### `CompactColorPicker`
@@ -158,7 +158,7 @@ Example: a line picker that also edits width, restoring it on Cancel:
 let widthAtOpen = width();
 <ColorSwatch value={color()} onChange={setColor} label="Line"
   trigger={<LineSample color={color()} width={width()} />} triggerClass="line-trigger"
-  onOpen={() => { widthAtOpen = width(); }} onCancel={() => setWidth(widthAtOpen)}>
+  onOpenChange={(open) => { if (open) widthAtOpen = width(); }} onCancel={() => setWidth(widthAtOpen)}>
   <WidthPicker value={width()} onChange={setWidth} />
 </ColorSwatch>
 ```
