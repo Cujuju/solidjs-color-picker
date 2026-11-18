@@ -120,6 +120,13 @@ import { ColorSwatch } from '@cujuju/solidjs-color-picker';
 | `paletteRow1` | `string[]` | TV grayscale (10 colors) | Override the top grayscale row. |
 | `paletteMain` | `string[]` | TV palette (70 colors) | Override the main 10x7 color grid. |
 | `tokens` | `Partial<PickerTokens>` | `DEFAULT_TOKENS` | Override design tokens for theming. |
+| `alpha` | `boolean` | `true` | Show the opacity control. |
+| `colors` | `boolean` | `true` | Show the palette, saved colors and opacity. `false` leaves only `children` and Cancel/Ok, for pickers that edit no color. |
+| `trigger` | `JSX.Element` | - | Replaces the color fill: rendered inside an unstyled opener button sized by its content. `label` becomes its tooltip. |
+| `triggerClass` | `string` | - | Class for the opener button; with `trigger`, it owns the button's whole look. |
+| `children` | `JSX.Element` | - | Extra picker sections, rendered after the opacity row, above Cancel/Ok. |
+| `onOpen` | `() => void` | - | Called each time the picker opens; snapshot here what `onCancel` restores. |
+| `onCancel` | `() => void` | - | Called after Cancel (button or Escape) restores the opening color. |
 
 #### `CompactColorPicker`
 
@@ -140,6 +147,21 @@ import { CompactColorPicker } from '@cujuju/solidjs-color-picker';
 | `paletteRow1` | `string[]` | TV grayscale | Override grayscale row. |
 | `paletteMain` | `string[]` | TV palette | Override main grid. |
 | `tokens` | `Partial<PickerTokens>` | `DEFAULT_TOKENS` | Design token overrides. |
+| `alpha` | `boolean` | `true` | Show the opacity control. |
+| `colors` | `boolean` | `true` | Show the palette, saved colors and opacity. |
+| `children` | `JSX.Element` | - | Extra sections, rendered after the opacity row, above Cancel/Ok. |
+| `onCancel` | `() => void` | - | Called after Cancel restores the opening color, before `onClose`. |
+
+Example: a line picker that also edits width, restoring it on Cancel:
+
+```tsx
+let widthAtOpen = width();
+<ColorSwatch value={color()} onChange={setColor} label="Line"
+  trigger={<LineSample color={color()} width={width()} />} triggerClass="line-trigger"
+  onOpen={() => { widthAtOpen = width(); }} onCancel={() => setWidth(widthAtOpen)}>
+  <WidthPicker value={width()} onChange={setWidth} />
+</ColorSwatch>
+```
 
 #### Canvas Sub-Components
 

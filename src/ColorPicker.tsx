@@ -1,6 +1,6 @@
-/** CompactColorPicker — palette grid, saved colors, opacity, Ok/Cancel. "+" opens FullPicker. The consumer persists saved colors. */
+/** CompactColorPicker — palette grid, saved colors, opacity, consumer sections, Ok/Cancel. "+" opens FullPicker. The consumer persists saved colors. */
 
-import { createSignal, createEffect, onCleanup, Show, For } from 'solid-js';
+import { createSignal, createEffect, onCleanup, Show, For, children } from 'solid-js';
 import type { JSX } from 'solid-js';
 import type { CtxMenuState, CompactColorPickerProps } from './types';
 import { parseColor, rgbToHex, extractBaseHex, applyAlpha } from './utils';
@@ -43,8 +43,11 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
   const customColors = () => props.savedColors ?? [];
   const setCustomColors = (colors: string[]) => props.onSavedColorsChange?.(colors);
 
+  const showColors = () => props.colors !== false;
+  const extraSections = children(() => props.children);
   const [showFull, setShowFull] = createSignal(false);
-  const [selection, setSelection] = createSignal(toSelection(props.value));
+  // Without colour controls the value is never read, so an empty one is not an error.
+  const [selection, setSelection] = createSignal(showColors() ? toSelection(props.value) : UNREADABLE_START);
   const [ctxMenu, setCtxMenu] = createSignal<CtxMenuState | null>(null);
   let containerEl: HTMLDivElement | undefined;
 
@@ -69,8 +72,8 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
   const openFull = () => { beforeFull = checkpoint(); setShowFull(true); };
   /** Restore the pre-"+" state; stay open. */
   const cancelFull = () => { restore(beforeFull); setShowFull(false); };
-  /** Restore the opening state; close. */
-  const cancel = () => { restore(opened); props.onClose(); };
+  /** Restore the opening state, then the consumer's; close. */
+  const cancel = () => { restore(opened); props.onCancel?.(); props.onClose(); };
 
   const selectHex = (color: string) => select({ ...selection(), hex: extractBaseHex(color) });
   const isSelected = (color: string) => extractBaseHex(color) === selection().hex;
@@ -162,93 +165,100 @@ export function CompactColorPicker(props: CompactColorPickerProps) {
           padding: `${P.pad}px`, "box-shadow": '0 8px 32px rgba(0,0,0,0.7)',
           "user-select": 'none', width: `${PANEL_W}px`, "box-sizing": 'border-box',
         }}>
-          {/* Grayscale row, then the main grid */}
-          <div style={{ display: 'flex', gap: `${SWATCH_GAP}px`, "margin-bottom": '6px' }}>
-            <For each={row1()}>{(c) => <Swatch color={c} label={c} />}</For>
-          </div>
-          <div style={{ display: 'grid', "grid-template-columns": `repeat(${PALETTE_COLUMNS}, ${SWATCH}px)`, gap: `${SWATCH_GAP}px`, "margin-bottom": '8px' }}>
-            <For each={main()}>{(c) => <Swatch color={c} label={c} />}</For>
-          </div>
+          <Show when={showColors()}>
+            {/* Grayscale row, then the main grid */}
+            <div style={{ display: 'flex', gap: `${SWATCH_GAP}px`, "margin-bottom": '6px' }}>
+              <For each={row1()}>{(c) => <Swatch color={c} label={c} />}</For>
+            </div>
+            <div style={{ display: 'grid', "grid-template-columns": `repeat(${PALETTE_COLUMNS}, ${SWATCH}px)`, gap: `${SWATCH_GAP}px`, "margin-bottom": '8px' }}>
+              <For each={main()}>{(c) => <Swatch color={c} label={c} />}</For>
+            </div>
 
-          {divider()}
+            {divider()}
 
-          {/* Saved colors + add button */}
-          <div style={{ display: 'flex', "flex-wrap": 'wrap', gap: `${SWATCH_GAP}px`, "margin-bottom": `${P.gap}px`, "align-items": 'center' }}>
-            <For each={customColors()}>{(c) => (
-              <Swatch color={c} label={`Saved colour ${c}`}
-                onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setCtxMenu({ x: e.clientX, y: e.clientY, color: c }); }} />
-            )}</For>
-            <button
-              type="button"
-              onClick={openFull}
-              title="Add custom color"
-              aria-label="Add custom color"
-              style={{
-                padding: '0',
-                width: `${SWATCH}px`, height: `${SWATCH}px`, "border-radius": `${PALETTE_SWATCH_RADIUS}px`,
-                background: P.bgInput, border: `1px solid ${P.borderHover}`,
-                cursor: 'pointer', display: 'flex', "align-items": 'center', "justify-content": 'center',
-                color: P.textDim, "font-size": '16px', "line-height": '1', "flex-shrink": '0',
-              }}
-            >+</button>
-          </div>
+            {/* Saved colors + add button */}
+            <div style={{ display: 'flex', "flex-wrap": 'wrap', gap: `${SWATCH_GAP}px`, "margin-bottom": `${P.gap}px`, "align-items": 'center' }}>
+              <For each={customColors()}>{(c) => (
+                <Swatch color={c} label={`Saved colour ${c}`}
+                  onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); setCtxMenu({ x: e.clientX, y: e.clientY, color: c }); }} />
+              )}</For>
+              <button
+                type="button"
+                onClick={openFull}
+                title="Add custom color"
+                aria-label="Add custom color"
+                style={{
+                  padding: '0',
+                  width: `${SWATCH}px`, height: `${SWATCH}px`, "border-radius": `${PALETTE_SWATCH_RADIUS}px`,
+                  background: P.bgInput, border: `1px solid ${P.borderHover}`,
+                  cursor: 'pointer', display: 'flex', "align-items": 'center', "justify-content": 'center',
+                  color: P.textDim, "font-size": '16px', "line-height": '1', "flex-shrink": '0',
+                }}
+              >+</button>
+            </div>
 
-          {/* Saved-colour context menu; its backdrop is inside the dialog */}
-          <Show when={ctxMenu()}>
-            {(menu) => (
-              <div>
-                <div style={{ position: 'fixed', inset: '0', "z-index": '9998' }} onClick={() => setCtxMenu(null)} />
-                <div style={{
-                  position: 'fixed', top: `${menu().y}px`, left: `${menu().x}px`, "z-index": '9999',
-                  background: P.bg, border: `1px solid ${P.border}`, "border-radius": `${P.radiusSm}px`,
-                  padding: '4px 0', "box-shadow": '0 4px 16px rgba(0,0,0,0.5)', "min-width": '100px',
-                }}>
-                  <div style={{ display: 'flex', "align-items": 'center', gap: '6px', padding: '4px 10px', "margin-bottom": '2px' }}>
-                    <div style={{ width: '14px', height: '14px', "border-radius": '2px', background: menu().color, border: `1px solid ${P.border}`, "flex-shrink": '0' }} />
-                    <span style={{ "font-size": '11px', color: P.textMuted, "font-family": 'monospace' }}>{menu().color.toUpperCase()}</span>
+            {/* Saved-colour context menu; its backdrop is inside the dialog */}
+            <Show when={ctxMenu()}>
+              {(menu) => (
+                <div>
+                  <div style={{ position: 'fixed', inset: '0', "z-index": '9998' }} onClick={() => setCtxMenu(null)} />
+                  <div style={{
+                    position: 'fixed', top: `${menu().y}px`, left: `${menu().x}px`, "z-index": '9999',
+                    background: P.bg, border: `1px solid ${P.border}`, "border-radius": `${P.radiusSm}px`,
+                    padding: '4px 0', "box-shadow": '0 4px 16px rgba(0,0,0,0.5)', "min-width": '100px',
+                  }}>
+                    <div style={{ display: 'flex', "align-items": 'center', gap: '6px', padding: '4px 10px', "margin-bottom": '2px' }}>
+                      <div style={{ width: '14px', height: '14px', "border-radius": '2px', background: menu().color, border: `1px solid ${P.border}`, "flex-shrink": '0' }} />
+                      <span style={{ "font-size": '11px', color: P.textMuted, "font-family": 'monospace' }}>{menu().color.toUpperCase()}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteColor(menu().color)}
+                      style={{
+                        display: 'block', width: '100%', "text-align": 'left',
+                        background: 'none', border: 'none', color: '#ef4444',
+                        "font-size": `${P.fontSizeSm}px`, padding: '6px 10px', cursor: 'pointer',
+                      }}
+                    >Delete</button>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteColor(menu().color)}
-                    style={{
-                      display: 'block', width: '100%', "text-align": 'left',
-                      background: 'none', border: 'none', color: '#ef4444',
-                      "font-size": `${P.fontSizeSm}px`, padding: '6px 10px', cursor: 'pointer',
-                    }}
-                  >Delete</button>
                 </div>
+              )}
+            </Show>
+
+            {divider()}
+
+            {/* Opacity row; hidden when `alpha` is false */}
+            <Show when={props.alpha !== false}>
+              <div style={{ display: 'flex', "align-items": 'center', gap: `${P.gapSm}px`, "margin-bottom": `${P.gap}px` }}>
+                <span style={{ "font-size": `${P.fontSizeSm}px`, color: P.textDim, "flex-shrink": '0' }}>Opacity</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={OPAQUE}
+                  value={selection().alpha}
+                  onInput={(e) => setAlpha(Number(e.currentTarget.value))}
+                  style={{ flex: '1', "min-width": '0', "accent-color": P.accent, cursor: 'pointer' }}
+                />
+                <input
+                  value={alphaField.text()}
+                  onInput={(e) => alphaField.input(e.currentTarget.value)}
+                  onBlur={alphaField.commit}
+                  onKeyDown={(e) => e.key === 'Enter' && alphaField.commit()}
+                  style={{
+                    width: '36px', background: P.bgInput, border: `1px solid ${P.border}`,
+                    "border-radius": `${P.radiusSm}px`, padding: '3px 4px', "font-size": `${P.fontSizeSm}px`,
+                    color: P.text, "text-align": 'right', "font-family": 'monospace',
+                    "flex-shrink": '0', "box-sizing": 'border-box',
+                  }}
+                />
+                <span style={{ "font-size": `${P.fontSizeSm}px`, color: P.textDim, "flex-shrink": '0' }}>%</span>
               </div>
-            )}
+              {divider()}
+            </Show>
           </Show>
 
-          {divider()}
-
-          {/* Opacity row; hidden when `alpha` is false */}
-          <Show when={props.alpha !== false}>
-            <div style={{ display: 'flex', "align-items": 'center', gap: `${P.gapSm}px`, "margin-bottom": `${P.gap}px` }}>
-              <span style={{ "font-size": `${P.fontSizeSm}px`, color: P.textDim, "flex-shrink": '0' }}>Opacity</span>
-              <input
-                type="range"
-                min={0}
-                max={OPAQUE}
-                value={selection().alpha}
-                onInput={(e) => setAlpha(Number(e.currentTarget.value))}
-                style={{ flex: '1', "min-width": '0', "accent-color": P.accent, cursor: 'pointer' }}
-              />
-              <input
-                value={alphaField.text()}
-                onInput={(e) => alphaField.input(e.currentTarget.value)}
-                onBlur={alphaField.commit}
-                onKeyDown={(e) => e.key === 'Enter' && alphaField.commit()}
-                style={{
-                  width: '36px', background: P.bgInput, border: `1px solid ${P.border}`,
-                  "border-radius": `${P.radiusSm}px`, padding: '3px 4px', "font-size": `${P.fontSizeSm}px`,
-                  color: P.text, "text-align": 'right', "font-family": 'monospace',
-                  "flex-shrink": '0', "box-sizing": 'border-box',
-                }}
-              />
-              <span style={{ "font-size": `${P.fontSizeSm}px`, color: P.textDim, "flex-shrink": '0' }}>%</span>
-            </div>
+          <Show when={extraSections()}>
+            {extraSections()}
             {divider()}
           </Show>
 
